@@ -1,0 +1,57 @@
+# IDE and Editor
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
+.idea/
+
+# Build artifacts
+bin/
+obj/
+.nunit/
+
+# Build results
+*.dll
+*.exe
+*.pdb
+*.user
+*.VisualState.xml
+
+# User-specific files
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# Rider
+.idea/
+*.sln.iml
+.rider/
+
+# JetBrains ReSharper
+_ReSharper*/
+*.DotSettings.user
+
+# Local environment files
+.env
+.env.local
+appsettings.local.json
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Project files
+*.csproj.user
+*.sln.user
+
+# Logs
+*.log
+logs/
