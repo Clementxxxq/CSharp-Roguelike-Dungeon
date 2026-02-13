@@ -2,6 +2,11 @@ namespace RoguelikeDungeonSimulator.Models
 {
     /// <summary>
     /// 代表游戏中的玩家角色
+    /// 
+    /// 设计模式：Entity Pattern（实体模式）
+    /// - Player 是游戏中的核心实体，持有玩家的所有状态数据
+    /// - 遵循数据与行为的单一责任原则
+    /// - 支持序列化导出（ToDict），便于持久化和网络传输
     /// </summary>
     public class Player
     {

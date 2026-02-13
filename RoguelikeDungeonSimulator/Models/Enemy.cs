@@ -2,6 +2,18 @@ namespace RoguelikeDungeonSimulator.Models
 {
     /// <summary>
     /// 代表游戏中的敌人
+    /// 
+    /// 设计模式：Factory Pattern + Strategy Pattern（工厂模式 + 策略模式）
+    /// 
+    /// 工厂模式：
+    /// - 构造函数作为简单工厂，根据敌人类型 (type) 创建不同的敌人
+    /// - 将对象创建与使用解耦
+    /// - 便于扩展新的敌人类型（Goblin, Orc, Boss...）
+    /// 
+    /// 策略模式：
+    /// - SetStatsByType() 方法根据敌人类型采用不同的策略设置属性
+    /// - 每种敌人类型（Goblin, Orc, Boss）有各自的属性计算策略
+    /// - 易于添加新的敌人类型和属性配置
     /// </summary>
     public class Enemy
     {
@@ -51,6 +63,9 @@ namespace RoguelikeDungeonSimulator.Models
 
         /// <summary>
         /// 根据敌人类型和等级设置属性
+        /// 
+        /// 策略模式实现：每种敌人类型使用独立的属性计算策略
+        /// 通过 switch-case 选择不同的策略，易于添加新类型
         /// </summary>
         private void SetStatsByType(string type, int level)
         {

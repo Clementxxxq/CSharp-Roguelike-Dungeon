@@ -2,6 +2,24 @@ namespace RoguelikeDungeonSimulator.Models
 {
     /// <summary>
     /// 代表地牢中的一个房间
+    /// 
+    /// 设计模式：Composite Pattern + Factory Pattern（组合模式 + 工厂模式）
+    /// 
+    /// 组合模式（Composite Pattern）：
+    /// - Room 作为容器聚合了多个 Enemy 和 Item 对象
+    /// - 提供统一的接口管理其子组件（AddEnemy, AddItem, RemoveEnemy 等）
+    /// - 可以对整个房间进行操作（HasEnemies(), MarkAsCleared() 等）
+    /// - 房间形成了一个树形结构：Dungeon -> Room -> Enemies/Items
+    /// 
+    /// 工厂模式（Factory Pattern）：
+    /// - GenerateContent() 方法是一个工厂方法，自动生成房间内容
+    /// - 根据房间难度随机创建不同数量和等级的敌人和物品
+    /// - Boss房间有特殊的生成策略
+    /// - 隐藏了房间内容生成的复杂逻辑
+    /// 
+    /// 责任分离：
+    /// - 房间负责存储和管理其包含的实体
+    /// - 房间本身是一个状态容器，易于序列化和网络传输
     /// </summary>
     public class Room
     {
@@ -45,6 +63,11 @@ namespace RoguelikeDungeonSimulator.Models
 
         /// <summary>
         /// 添加敌人到房间
+        /// 
+        /// 组合模式实现：
+        /// - Room 作为容器管理子组件 (Enemies 列表)
+        /// - 提供统一的接口添加敌人
+        /// - 隐藏内部集合的实现细节
         /// </summary>
         public void AddEnemy(Enemy enemy)
         {
@@ -61,6 +84,8 @@ namespace RoguelikeDungeonSimulator.Models
 
         /// <summary>
         /// 添加物品到房间
+        /// 
+        /// 组合模式实现：Room 作为容器统一管理其包含的所有组件（敌人和物品）
         /// </summary>
         public void AddItem(Item item)
         {
@@ -98,6 +123,12 @@ namespace RoguelikeDungeonSimulator.Models
 
         /// <summary>
         /// 生成房间内容（随机敌人和物品）
+        /// 
+        /// 工厂模式实现：
+        /// - 自动创建房间所需的所有实体对象
+        /// - 根据难度等级生成相应的敌人和物品
+        /// - Boss房间有特殊的生成逻辑
+        /// - 隐藏了复杂的生成细节，调用者只需调用一个方法
         /// </summary>
         public void GenerateContent()
         {
