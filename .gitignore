@@ -5,6 +5,8 @@
 *.swo
 *~
 .idea/
+*.sublime-workspace
+*.sublime-project
 
 # Build artifacts
 bin/
@@ -17,41 +19,133 @@ obj/
 *.pdb
 *.user
 *.VisualState.xml
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
 
 # User-specific files
 *.rsuser
 *.suo
 *.userosscache
 *.sln.docstates
+*.opendb
+*.opensdf
 
 # NuGet
 *.nupkg
 *.snupkg
 packages/
 .nuget/
+NuGetFallbackFolder/
 
 # Rider
 .idea/
 *.sln.iml
 .rider/
+riderModule.iml
 
 # JetBrains ReSharper
 _ReSharper*/
 *.DotSettings.user
+.resharper
+
+# Visual Studio Code
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
 
 # Local environment files
 .env
 .env.local
+.env.*.local
 appsettings.local.json
+appsettings.Development.json
 
 # OS-specific
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
 # Project files
 *.csproj.user
 *.sln.user
+launchSettings.json
 
 # Logs
 *.log
 logs/
+[Ll]ibrary/
+[Ll]ogs/
+[Ll]og/
+[Oo]ut/
+[Tt]emp/
+[Tt]mp/
+[Uu]serSettings/
+
+# Visual Studio Cache/Options
+.cache/
+.cache-*
+
+# Diagnostic files
+diagnostics/
+*.lex
+
+# Test coverage
+coverage/
+*.coverage
+opencover/
+
+# Unity-specific
+[Ll]ibrary/
+[Ll]ogs/
+[Uu]serSettings/
+[Uu]serData/
+[Tt]emp/
+[Cc]ache/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ff]reeze/
+MasterServerCache*
+
+# Unity Editor
+.vs/
+.vscode/
+*.csproj
+*.sln
+*.pidb
+*.booproj
+*.unityproj
+*.userprefs
+
+# Unity Packages
+*.unitypackage
+*.unitypackage.meta
+
+# Build outputs
+*.exe
+*.exe.meta
+*.apk
+*.apk.meta
+*.unitypackage
+
+# Rider/ReSharper
+.idea/
+*.sln.iml
+
+# Visual Studio
+.vs/
+.vscode/
+
+

@@ -1,17 +1,21 @@
-## Simulateur de Donjon Roguelike (Console C#)
+## Simulateur de Donjon Roguelike (Unity 2D)
 
-Un jeu de donjon roguelike basé sur la console avec des salles procédurales, des combats au tour par tour et des récompenses aléatoires.
+Un jeu roguelike 2D en vue du dessus (top-down) avec génération procédurale, combats au tour par tour et système de récompenses. Le projet utilise **Unity** pour le frontend et **C# .NET** pour la logique métier.
 
 ### Objectif du projet
-Ce projet vise à démontrer la conception d'un jeu roguelike simple en console,
-en mettant l'accent sur la structure du code, la programmation orientée objet
-et la séparation des responsabilités.
+Ce projet vise à démontrer :
+- La conception d'une architecture client-serveur avec **séparation nette** entre frontend et backend
+- La programmation orientée objet et les principes SOLID
+- Le développement de jeux en 2D avec Unity
+- L'intégration entre C# .NET (backend) et Unity (frontend)
 
 ### Fonctionnalités
-- 🎮 Jeu roguelike en console
-- 🏰 Génération procédurale de salles
-- ⚔️ Combat au tour par tour (joueur vs ennemi)
-- 💰 Système de récompenses aléatoires
+- 🎮 Interface Unity 2D en vue du dessus
+- 🏰 Génération procédurale des salles de donjon
+- ⚔️ Combat au tour par tour avec animation
+- 💰 Système de récompenses et progression du joueur
+- 🎨 Graphismes simples et efficaces
+- 🔌 Architecture modulaire (backend + frontend séparé)
 
 ### Structure de la Carte
 ```
@@ -24,14 +28,33 @@ Où:
 - **B** (Boss) = Combat final contre le boss
 
 ### Technologie
-- C# (.NET)
-- Programmation orientée objet (POO)
-- Principes SOLID
-- Architecture modulaire (séparation des systèmes)
+
+**Backend (Logique métier)**
+- C# (.NET 6.0+)
+- Architecture verticale (Models, Systems, Utilities)
+- Principes SOLID et Programmation orientée objet
+
+**Frontend (Client)**
+- Unity 2D
+- Système de composants (ECS pattern)
+- Interface utilisateur avec UI Toolkit
+
+**Communication**
+- Sérialisation JSON pour l'échange de données
+- API simple ou événementiel
 
 ### Prérequis
+
+**Backend**
 - .NET 6.0 ou supérieur
-- Visual Studio, Visual Studio Code ou tout éditeur C#
+- Visual Studio ou Visual Studio Code
+
+**Frontend**
+- Unity 2023.2 LTS ou supérieur
+- Module 2D installé dans Unity
+
+**Général**
+- Git pour le contrôle de version
 - Système d'exploitation : Windows, macOS, ou Linux
 
 ### Règles du Jeu
@@ -45,48 +68,83 @@ Où:
 
 #### Vue d'ensemble
 ```
-Roguelike-Dungeon/
-├── Models/           # Entités du jeu (Player, Enemy, Room...)
-├── Systems/          # Logique de jeu (Combat, Dungeon...)
-├── UI/              # Affichage console
-├── Utilities/       # Fonctions utilitaires
-└── Program.cs       # Point d'entrée
+CSharp-Roguelike-Dungeon/
+├── RoguelikeDungeonSimulator/    # Backend C# .NET
+├── RoguelikeFrontend/            # Frontend Unity (à créer)
+├── Docs/                          # Documentation
+├── README.md
+└── .gitignore
 ```
 
 #### Architecture détaillée
+
+**Backend (RoguelikeDungeonSimulator/)**
 ```
-Roguelike-Dungeon/
+RoguelikeDungeonSimulator/
 ├── Models/
-│   ├── Player.cs         # Classe joueur (PV, statistiques, inventaire)
-│   ├── Enemy.cs          # Classe ennemi (PV, attaque, récompense)
-│   ├── Room.cs           # Classe salle (contenu, difficulté)
-│   └── Item.cs           # Classe objet (équipement, consommables)
+│   ├── Player.cs         # Entité joueur
+│   ├── Enemy.cs          # Entité ennemi
+│   ├── Room.cs           # Entité salle
+│   └── Item.cs           # Entité objet
 ├── Systems/
-│   ├── DungeonGenerator.cs    # Génération procédurale des salles
-│   ├── CombatSystem.cs        # Logique de combat au tour par tour
+│   ├── DungeonGenerator.cs    # Génération procédurale
+│   ├── CombatSystem.cs        # Logique de combat
 │   ├── RewardSystem.cs        # Gestion des récompenses
-│   └── GameManager.cs         # Gestionnaire principal du jeu
-├── UI/
-│   ├── GameDisplay.cs    # Affichage des écrans
-│   ├── InputHandler.cs   # Gestion des entrées utilisateur
-│   └── Messages.cs       # Messages et dialogues
+│   └── GameManager.cs         # Gestionnaire global
 ├── Utilities/
-│   ├── RandomGenerator.cs     # Générateur de nombres aléatoires
-│   ├── Constants.cs           # Constantes du jeu
-│   └── Logger.cs              # Système de logging
-├── Program.cs            # Boucle principale du jeu
-├── Roguelike-Dungeon.csproj   # Fichier de configuration C#
-└── README.md             # Documentation
+│   ├── RandomGenerator.cs     # Nombres aléatoires
+│   ├── Constants.cs           # Constantes
+│   └── Logger.cs              # Logging
+├── Program.cs            # Point d'entrée
+└── RoguelikeDungeonSimulator.csproj
+```
+
+**Frontend (RoguelikeFrontend/) - À créer**
+```
+RoguelikeFrontend/
+├── Assets/
+│   ├── Scripts/
+│   │   ├── UI/               # Interface et écrans
+│   │   ├── Managers/         # Gestionnaires (GameManager, BackendManager)
+│   │   ├── Entities/         # Entités visuelles (Player, Enemy, Tile)
+│   │   ├── Systems/          # Systèmes (Input, Rendering, Animation)
+│   │   └── Utils/            # Utilitaires
+│   ├── Prefabs/              # Préfabriqués (Joueur, Ennemi, Salle)
+│   ├── Scenes/               # Scènes (MainMenu, DungeonLevel, GameOver)
+│   ├── Sprites/              # Assets graphiques
+│   └── Audio/                # Sons et musiques
+└── ProjectSettings/          # Configurations Unity
 ```
 
 ### Comment Jouer
+
+**1. Lancer le backend** (optionnel, selon l'architecture)
 ```bash
+cd RoguelikeDungeonSimulator
 dotnet run
 ```
-Puis suivez les instructions affichées dans la console pour explorer le donjon et combattre les ennemis.
+
+**2. Lancer le jeu** 
+- Ouvrir le projet Unity dans `RoguelikeFrontend/`
+- Appuyer sur Play dans l'éditeur
+- Utiliser les flèches ou WASD pour se déplacer
+- Appuyer sur Entrée/Space pour attaquer
+
+**3. Objectif**
+- Explorer le donjon en avançant de salle en salle
+- Vaincre les ennemis en combats au tour par tour
+- Atteindre le boss final et le vaincre
 
 ### État du Développement
 🔄 Projet d'apprentissage en cours
-- Phase : Implémentation des systèmes fondamentaux
-- Complétude : ~70%
-- Dernière mise à jour : 2026
+- **Backend** : En cours (Systèmes fondamentaux )
+- **Frontend** : À démarrer (Architecture 0%)
+- Complétude globale : 
+- Dernière mise à jour : 2026-02-13
+
+### Prochaines étapes
+1. ✅ Finaliser backend C#
+2. ⏳ Créer projet Unity (frontend)
+3. ⏳ Implémenter système de rendu 2D
+4. ⏳ Intégrer backend avec frontend
+5. ⏳ Tester et équilibrer

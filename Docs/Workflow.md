@@ -1,177 +1,321 @@
 # Workflow de Développement
 
-## Simulateur de Donjon Roguelike (Console C#)
+## Simulateur de Donjon Roguelike (Unity 2D + C# .NET)
 
-Ce document décrit le processus de développement du projet de manière itérative et progressive.
+Ce document décrit le processus de développement du projet avec une **architecture client-serveur** : backend C# .NET + frontend Unity 2D.
 
 ---
 
-## Phase 1️⃣ : Initialisation du projet
+## 🎯 Architecture Globale
+
+```
+┌─────────────────────────────────────────────┐
+│         Frontend (Unity 2D)                 │
+│  - Rendu graphique (top-down view)          │
+│  - Interface utilisateur                    │
+│  - Gestion des entrées                      │
+└─────────────────┬───────────────────────────┘
+                  │ JSON / Events
+                  ▼
+┌─────────────────────────────────────────────┐
+│      Backend (C# .NET)                      │
+│  - Logique de jeu                           │
+│  - Génération procédurale                   │
+│  - Systèmes de combat                       │
+│  - Gestion des récompenses                  │
+└─────────────────────────────────────────────┘
+```
+
+**Séparation des responsabilités :**
+- **Backend** = Données et logique métier (state, règles, validation)
+- **Frontend** = Présentation et interaction (visuel, input, animation)
+
+---
+
+## 📋 Phases de Développement
+
+---
+
+## GROUPE 1️⃣ : BACKEND C# .NET
+
+### Phase 1.1 : Initialisation du backend
 
 **Objectifs :**
-- Créer la structure du projet C# (.NET)
-- Initialiser le contrôle de version Git
-- Mettre en place l'architecture de base
+- Créer le projet C# (.NET)
+- Initialiser Git
+- Mettre en place la structure de base
 
 **Tâches :**
-- Créer le projet C# avec `dotnet new console`
-- Initialiser le dépôt Git
-- Créer la structure de dossiers (Models, Systems, UI, Utilities)
-- Ajouter README.md et WORKFLOW.md
+- `dotnet new console` pour créer le projet
+- Créer les dossiers : Models, Systems, UI, Utilities
+- Configuration `.gitignore` et `README.md`
 
-**Commit :** `chore: initialize project structure`
+**Commit :** `chore: initialize backend project structure`
 
 ---
 
-## Phase 2️⃣ : Implémentation des entités de base
+### Phase 1.2 : Implémentation des entités de base
 
-**Modules :** Models (Player, Enemy, Room)
+**Module :** Models/
 
-**Objectifs :**
-- Créer les classes fondamentales du jeu
-- Implémenter les propriétés et méthodes de base
-
-**Classes à implémenter :**
-- `Player.cs` — Joueur avec PV, attaque, inventaire
-- `Enemy.cs` — Ennemi avec PV, attaque, récompense
-- `Room.cs` — Salle avec contenu et difficulté
+**Classes à créer :**
+- `Player.cs` — PV, statistiques, inventaire
+- `Enemy.cs` — PV, attaque, récompense
+- `Room.cs` — Contenu, difficulté
+- `Item.cs` — Équipement, consommables
 
 **Commit :** `feat: add base game entities (player, enemy, room)`
 
 ---
 
-## Phase 3️⃣ : Système de combat
+### Phase 1.3 : Système de combat
 
-**Module :** Systems (CombatSystem.cs)
-
-**Objectifs :**
-- Implémenter un combat au tour par tour
-- Gérer la logique de vie et de mort
+**Module :** Systems/CombatSystem.cs
 
 **Fonctionnalités :**
+- Combat au tour par tour
 - Le joueur attaque en premier
-- Échange d'attaques jusqu'à la mort d'un combattant
-- Gestion de la victoire/défaite
+- Gestion de la vie et de la mort
+- Calcul des dégâts
 
 **Commit :** `feat: implement turn-based combat system`
 
 ---
 
-## Phase 4️⃣ : Génération du donjon
+### Phase 1.4 : Génération du donjon
 
-**Module :** Systems (DungeonGenerator.cs)
-
-**Objectifs :**
-- Créer une génération procédurale simple
-- Établir une progression linéaire
+**Module :** Systems/DungeonGenerator.cs
 
 **Fonctionnalités :**
-- Générer une liste de salles
-- Identifier la salle finale (Boss)
-- Permettre la progression salle par salle
+- Génération procédurale des salles
+- Progression linéaire
+- Identification du boss final
 
-**Commit :** `feat: add procedural dungeon structure`
+**Commit :** `feat: add procedural dungeon generation`
 
 ---
 
-## Phase 5️⃣ : Système de récompenses
+### Phase 1.5 : Système de récompenses
 
-**Module :** Systems (RewardSystem.cs)
-
-**Objectifs :**
-- Créer un système d'amélioration du joueur
-- Ajouter de la progression et de la motivation
+**Module :** Systems/RewardSystem.cs
 
 **Fonctionnalités :**
-- Récompenses aléatoires après un combat
-- Amélioration des statistiques (+HP, +Attaque)
-- Choix simples pour le joueur
+- Récompenses aléatoires après victoire
+- Amélioration des stats (+HP, +Attaque)
+- Choix de récompenses
 
 **Commit :** `feat: add random reward system`
 
 ---
 
-## Phase 6️⃣ : Interface utilisateur console
+### Phase 1.6 : Backend complet et API
 
-**Module :** UI (GameDisplay.cs, InputHandler.cs)
+**Module :** Program.cs / GameManager.cs
 
 **Objectifs :**
-- Créer une interface claire et lisible
-- Permettre l'interaction avec le joueur
+- Intégrer tous les systèmes
+- Créer une API / Interface pour le frontend
+- Sérialisation JSON des données
 
 **Fonctionnalités :**
-- Affichage des informations de combat
-- Gestion des entrées clavier
-- Représentation ASCII du donjon
-- Messages clairs et instructions
+- Méthodes publiques pour le frontend (GetGameState, MakeAction, etc.)
+- Serialization des entités en JSON
+- Logging complet
 
-**Commit :** `feat: implement console user interface`
+**Commit :** `feat: create backend API and game manager`
 
 ---
 
-## Phase 7️⃣ : Intégration et boucle principale
+## GROUPE 2️⃣ : FRONTEND UNITY 2D
 
-**Module :** Program.cs (GameManager.cs)
+### Phase 2.1 : Setup du projet Unity
 
 **Objectifs :**
-- Connecter tous les systèmes
-- Créer la boucle de jeu principale
+- Créer le projet Unity 2D
+- Configurer les réglages de base
+- Importer le backend C#
 
-**Fonctionnalités :**
-- Gestion de la progression globale
-- Boucle de jeu (menu → dungeon → résultat)
-- Sauvegarde/chargement basique
+**Tâches :**
+- Créer le projet avec Unity 2024.3+ LTS
+- Organiser les dossiers : Scripts, Sprites, Prefabs, Scenes
+- Ajouter le backend en tant que DLL ou référence
 
-**Commit :** `feat: integrate game systems and main loop`
+**Commit :** `chore: setup unity project structure`
 
 ---
 
-## Phase 8️⃣ : Tests et équilibrage
+### Phase 2.2 : Système de caméra et grille
+
+**Module :** Systems/CameraSystem.cs
 
 **Objectifs :**
-- Vérifier la jouabilité complète
+- Implémenter une caméra top-down
+- Système de grille pour le mouvement
+
+**Fonctionnalités :**
+- Caméra qui suit le joueur
+- Grille de tuiles (tile grid)
+- Positionnement des objets
+
+**Commit :** `feat: implement camera and tile grid system`
+
+---
+
+### Phase 2.3 : Rendu des entités visuelles
+
+**Module :** Entities/ (PlayerView, EnemyView, TileView)
+
+**Objectifs :**
+- Afficher le joueur, ennemis, salles
+- Animation simple des déplacements
+
+**Composants :**
+- Sprite renderer pour chaque entité
+- Animation de mouvement
+- Gestion des collisions
+
+**Commit :** `feat: implement visual entities and rendering`
+
+---
+
+### Phase 2.4 : Système d'input et interaction
+
+**Module :** Systems/InputHandler.cs
+
+**Objectifs :**
+- Récupérer les entrées au clavier
+- Envoyer les actions au backend
+
+**Fonctionnalités :**
+- Mouvements (WASD / Flèches)
+- Actions de combat (Space / Enter)
+- Menu de pause (Esc)
+
+**Commit :** `feat: implement input handling system`
+
+---
+
+### Phase 2.5 : Interface utilisateur (UI)
+
+**Module :** UI/
+
+**Écrans à créer :**
+- `MainMenuUI.cs` — Menu principal
+- `DungeonUI.cs` — Affichage combat en cours (PV, stats)
+- `GameOverUI.cs` — Écran fin de jeu
+- `PauseMenuUI.cs` — Menu pause
+
+**Utiliser :** Canvas + UI Toolkit d'Unity
+
+**Commit :** `feat: implement game UI and menus`
+
+---
+
+### Phase 2.6 : Communication avec le backend
+
+**Module :** Managers/BackendManager.cs
+
+**Objectifs :**
+- Intégrer la logique du backend
+- Synchroniser state entre backend et frontend
+
+**Fonctionnalités :**
+- Appeler les méthodes du backend C#
+- Mettre à jour l'état du jeu
+- Gérer les événements (combat, récompense, fin)
+
+**Commit :** `feat: integrate backend with frontend`
+
+---
+
+### Phase 2.7 : Affichage des animations
+
+**Module :** Systems/AnimationSystem.cs
+
+**Animations à implémenter :**
+- Déplacement du joueur et des ennemis
+- Attaques et impacts
+- Réactions aux dégâts
+- Transitions de scènes
+
+**Commit :** `feat: add animation system`
+
+---
+
+### Phase 2.8 : Effets visuels et audio
+
+**Module :** Systems/EffectsSystem.cs
+
+**Éléments à ajouter :**
+- Effets visuels simples (flashes, particles)
+- Sons de combat
+- Musique de fond
+
+**Commit :** `feat: add sound and visual effects`
+
+---
+
+## GROUPE 3️⃣ : INTÉGRATION ET FINITION
+
+### Phase 3.1 : Tests manuels complets
+
+**Objectifs :**
+- Tester le jeu de bout en bout
+- Vérifier la jouabilité
+- Identifier les bugs
+
+**Tâches :**
+- Parcourir plusieurs dungeons complets
+- Tester tous les systèmes de combat
+- Vérifier les transitions de scènes
+
+**Commit :** `test: manual testing and bug fixes`
+
+---
+
+### Phase 3.2 : Équilibrage et ajustements
+
+**Objectifs :**
+- Ajuster la difficulté
 - Équilibrer les valeurs de jeu
 
-**Tâches :**
-- Tests manuels complets
-- Équilibrage des PV, dégâts, récompenses
-- Correction des bugs logiques
-- Vérification de la progression du donjon
+**Paramètres à ajuster :**
+- PV joueur / ennemis
+- Dégâts des attaques
+- Récompenses
+- Nombre de salles
 
-**Commit :** `fix: balance game values and fix logic issues`
-
----
-
-## Phase 9️⃣ : Documentation et nettoyage
-
-**Objectifs :**
-- Améliorer la lisibilité du code
-- Documenter les classes principales
-
-**Tâches :**
-- Ajouter des commentaires XML sur les classes
-- Simplifier le code redondant
-- Supprimer le code mort
-- Mettre à jour README.md et WORKFLOW.md
-
-**Commit :** `docs: add code comments and update documentation`
+**Commit :** `balance: adjust game difficulty and values`
 
 ---
 
-## Phase 10️⃣ : Livraison finale
+### Phase 3.3 : Polissage final
 
 **Objectifs :**
-- Préparer le projet pour la présentation
+- Nettoyage du code
+- Documentation
+- Préparation à la présentation
 
-**État final :**
-- ✅ Jeu jouable de bout en bout
-- ✅ Architecture claire et modulaire
-- ✅ Code documenté et nettoyé
-- ✅ Prêt pour portfolio ou projet académique
+**Tâches :**
+- Refactoriser le code redondant
+- Ajouter des commentaires XML
+- Mettre à jour README et documentation
+- Optimiser les performances
 
-**Améliorations futures possibles :**
-- 🔮 Système de sauvegarde persistant
-- 🔮 Types de salles supplémentaires
-- 🔮 Compétences spéciales du joueur
-- 🔮 IA ennemie plus avancée
+**Commit :** `docs: add documentation and clean codebase`
+
+---
+
+## 📌 Notes importantes
+
+- **Itération** : Chaque phase peut être testée indépendamment
+- **Commits** : Utiliser le format **Conventional Commits** (feat:, fix:, docs:, etc.)
+- **Architecture** : Backend et Frontend sont **complètement découplés**
+- **Extensibilité** : Les systèmes sont conçus pour être facilement extensibles
+
+**Timeline estimée :**
+- Backend : 1-2 semaines
+- Frontend : 2-3 semaines
+- Intégration : 1 semaine
+- **Total : 4-6 semaines**
 
