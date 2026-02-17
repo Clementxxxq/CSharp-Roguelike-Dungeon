@@ -1,4 +1,3 @@
-// Interface pour les entités du jeu
 public interface IEntity
 {
     int HP { get; set; }
