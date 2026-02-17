@@ -1,16 +1,36 @@
+//Singleton Pattern - Assure qu'il n'y a qu'une seule instance du joueur
 public class Player : IEntity
 {
+    private static Player instance;
+
+    public string Name { get; set; }
     public int HP { get; set; }
     public int MaxHP { get; set; }
     public int Attack { get; set; }
     public int Defense { get; set; }
 
+    private const int BASE_HP = 100;
+    private const int BASE_ATTACK = 10;
+    private const int BASE_DEFENSE = 5;
+    private const int HP_PER_LEVEL = 10;
+    private const int ATTACK_PER_LEVEL = 2;
+    private const int DEFENSE_PER_LEVEL = 1;
+
+    // Obtient l'instance unique du joueur (Singleton)
+    public static Player GetInstance()
+    {
+        if (instance == null)
+            instance = new Player();
+        return instance;
+    }
+
     public Player()
     {
-        MaxHP = 100;
-        HP = MaxHP;
-        Attack = 10;
-        Defense = 5;
+        Name = "Héros";
+        MaxHP = BASE_HP;
+        HP = BASE_HP;
+        Attack = BASE_ATTACK;
+        Defense = BASE_DEFENSE;
     }
 
     public void TakeDamage(int damage)
