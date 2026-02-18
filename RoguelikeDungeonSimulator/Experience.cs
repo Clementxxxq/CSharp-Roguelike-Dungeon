@@ -11,24 +11,17 @@ public class Experience
     public int CurrentLevel => currentLevel;
     public bool GainXP(int amount)
     {
-        CurrentXP += amount;
+        currentXP += amount;
         bool leveledUp = false;
 
-        while (CurrentXP >= XPToNextLevel)
+        while (currentXP >= XPForNextLevel())
         {
-            CurrentXP -= XPToNextLevel;
-            Level++;
-            XPToNextLevel = CalculateXPForNextLevel();
+            currentXP -= XPForNextLevel();
+            currentLevel++;
             leveledUp = true;
         }
 
         return leveledUp;
-    }
-
-    private void LevelUp()
-    {
-        currentLevel++;
-        currentXP -= XPForNextLevel();
     }
     public void Reset()
     {
