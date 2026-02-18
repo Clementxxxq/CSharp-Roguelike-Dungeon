@@ -50,4 +50,46 @@ public class EnemyFactory
 
         return enemies;
     }
-}
+    /// <summary>
+    /// Creates a list of enemies with difficulty scaling
+    /// </summary>
+    public static List<Enemy> CreateEnemies(int count, int difficultyLevel = 1)
+    {
+        var random = new Random();
+        var enemies = new List<Enemy>();
+
+        for (int i = 0; i < count; i++)
+        {
+            Enemy enemy = SelectEnemyByDifficulty(difficultyLevel, random);
+            enemies.Add(enemy);
+        }
+
+        return enemies;
+    }
+
+    private static Enemy SelectEnemyByDifficulty(int difficultyLevel, Random random)
+    {
+        int roll = random.Next(100);
+
+        if (difficultyLevel <= 2)
+        {
+            return roll < 80 
+                ? new DungeonRat()
+                : new FallenWarrior();
+        }
+        else if (difficultyLevel <= 4)
+        {
+            if (roll < 40)
+                return new DungeonRat();
+            else if (roll < 80)
+                return new FallenWarrior();
+            else
+                return new CorruptedMage();
+        }
+        else
+        {
+            return roll < 50 
+                ? new FallenWarrior()
+                : new CorruptedMage();
+        }
+    }}

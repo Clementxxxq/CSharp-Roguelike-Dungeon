@@ -33,18 +33,17 @@ public class BasicEquipmentFactory : EquipmentFactory
 }
 
 public class AdvancedEquipmentFactory : EquipmentFactory
-
 // Implémente la création d'équipements avancés
 {
-    public override IEquipment CreateWeapon() => new HeroSword();
-    public override IEquipment CreateArmor() => new ReinforcedArmor();
+    public override IEquipment CreateWeapon() => new Longsword();
+    public override IEquipment CreateArmor() => new ChainArmor();
     public override IEquipment CreateRing() => new PowerRing();
 }
 
 public class LegendaryEquipmentFactory : EquipmentFactory
 // Implémente la création d'équipements légendaires
 {
-    public override IEquipment CreateWeapon() => new LegendarySword();
-    public override IEquipment CreateArmor() => new LegendaryArmor();
-    public override IEquipment CreateRing() => new LegendaryRing();
+    public override IEquipment CreateWeapon() => new HeroSword();
+    public override IEquipment CreateArmor() => new DragonArmor();
+    public override IEquipment CreateRing() => new RingOfTheAncients();
 }
