@@ -16,13 +16,12 @@ public class Player : IEntity
     private const int ATTACK_PER_LEVEL = 2;
     private const int DEFENSE_PER_LEVEL = 1;
 
-<<<<<<< feature-player-update
     public IEquipment EquippedWeapon { get; private set; }
     public IEquipment EquippedArmor { get; private set; }
     public IEquipment EquippedRing { get; private set; }
 
-=======
->>>>>>> main
+    private Experience experience;
+
     // Obtient l'instance unique du joueur (Singleton)
     public static Player GetInstance()
     {
@@ -31,17 +30,14 @@ public class Player : IEntity
         return instance;
     }
 
-<<<<<<< feature-player-update
     private Player()
-=======
-    public Player()
->>>>>>> main
     {
         Name = "Héros";
         MaxHP = BASE_HP;
         HP = BASE_HP;
         Attack = BASE_ATTACK;
         Defense = BASE_DEFENSE;
+        experience = new Experience();
     }
 
     public void TakeDamage(int damage)
@@ -95,5 +91,26 @@ public class Player : IEntity
 
         EquippedRing = ring;
         EquippedRing.ApplyBonus(this);
+    }
+
+    public void GainExperience(int xpAmount)
+    {
+        bool leveledUp = experience.GainXP(xpAmount);
+
+        if (leveledUp)
+        {
+            ApplyLevelUpBonuses();
+        }
+    }
+
+    private void ApplyLevelUpBonuses()
+    {
+        int levelDifference = experience.CurrentLevel - 1;
+        MaxHP = BASE_HP + (levelDifference * HP_PER_LEVEL);
+        Attack = BASE_ATTACK + (levelDifference * ATTACK_PER_LEVEL);
+        Defense = BASE_DEFENSE + (levelDifference * DEFENSE_PER_LEVEL);
+
+        HP = MaxHP;
+
     }
 }
