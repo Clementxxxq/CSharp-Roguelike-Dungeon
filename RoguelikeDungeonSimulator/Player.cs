@@ -16,6 +16,12 @@ public class Player : IEntity
     private const int ATTACK_PER_LEVEL = 2;
     private const int DEFENSE_PER_LEVEL = 1;
 
+    public IEquipment EquippedWeapon { get; private set; }
+    public IEquipment EquippedArmor { get; private set; }
+    public IEquipment EquippedRing { get; private set; }
+
+    private Experience experience;
+
     // Obtient l'instance unique du joueur (Singleton)
     public static Player GetInstance()
     {
@@ -24,13 +30,14 @@ public class Player : IEntity
         return instance;
     }
 
-    public Player()
+    private Player()
     {
         Name = "Héros";
         MaxHP = BASE_HP;
         HP = BASE_HP;
         Attack = BASE_ATTACK;
         Defense = BASE_DEFENSE;
+        experience = new Experience();
     }
 
     public void TakeDamage(int damage)
@@ -43,10 +50,13 @@ public class Player : IEntity
         HP -= reducedDamage;
         if (HP < 0)
             HP = 0;
-
-        Console.WriteLine($"Vous subissez {reducedDamage} dégâts (PV: {HP}/{MaxHP})");
     }
+    public void AttackEnemy(Enemy enemy)
+    {
+        int damage = CalculateDamage(enemy);
 
+        enemy.TakeDamage(damage);
+    }
     public int CalculateDamage(IEntity target)
     {
         // Calcul des dégâts inflligés à l'adversaire
@@ -56,5 +66,51 @@ public class Player : IEntity
     public bool IsAlive()
     {
         return HP > 0;
+    }
+
+    public void EquipWeapon(IEquipment weapon)
+    {
+        if (EquippedWeapon != null)
+            EquippedWeapon.RemoveBonus(this);
+
+        EquippedWeapon = weapon;
+        EquippedWeapon.ApplyBonus(this);
+    }
+    public void EquipArmor(IEquipment armor)
+    {
+        if (EquippedArmor != null)
+            EquippedArmor.RemoveBonus(this);
+
+        EquippedArmor = armor;
+        EquippedArmor.ApplyBonus(this);
+    }
+    public void EquipRing(IEquipment ring)
+    {
+        if (EquippedRing != null)
+            EquippedRing.RemoveBonus(this);
+
+        EquippedRing = ring;
+        EquippedRing.ApplyBonus(this);
+    }
+
+    public void GainExperience(int xpAmount)
+    {
+        bool leveledUp = experience.GainXP(xpAmount);
+
+        if (leveledUp)
+        {
+            ApplyLevelUpBonuses();
+        }
+    }
+
+    private void ApplyLevelUpBonuses()
+    {
+        int levelDifference = experience.CurrentLevel - 1;
+        MaxHP = BASE_HP + (levelDifference * HP_PER_LEVEL);
+        Attack = BASE_ATTACK + (levelDifference * ATTACK_PER_LEVEL);
+        Defense = BASE_DEFENSE + (levelDifference * DEFENSE_PER_LEVEL);
+
+        HP = MaxHP;
+
     }
 }
