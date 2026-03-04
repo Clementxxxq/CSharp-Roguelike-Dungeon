@@ -13,16 +13,16 @@ public static class RoomFactory
         };
     }
 
-    private static Room CreateCombatRoom(int difficulty)
+    private static Room CreateCombatRoom(int roomNumber)
     {
-        int enemyCount = 1 + (difficulty / 2);  
-        var enemies = EnemyFactory.CreateEnemies(enemyCount, difficulty);
-        return new CombatRoom(enemies);
+        int enemyCount = 1 + (roomNumber / 2);  
+        var enemies = EnemyFactory.CreateEnemies(enemyCount, roomNumber);
+        return new CombatRoom(roomNumber, enemies);
     }
 
     private static Room CreateBossRoom()
     {
         Enemy boss = new DungeonLord();
-        return new BossRoom(boss);
+        return new BossRoom(99, boss);
     }
 }

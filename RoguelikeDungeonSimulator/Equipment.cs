@@ -1,18 +1,4 @@
 /// <summary>
-/// Interface for all equipment items
-/// </summary>
-public interface IEquipment
-{
-    string Name { get; }
-    int AttackBonus { get; }
-    int DefenseBonus { get; }
-    int MaxHPBonus { get; }
-
-    void ApplyBonus(Player player);
-    void RemoveBonus(Player player);
-}
-
-/// <summary>
 /// Base class for all equipment types
 /// </summary>
 public abstract class Equipment : IEquipment

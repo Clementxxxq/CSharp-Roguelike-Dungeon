@@ -17,7 +17,7 @@ public class Player : IEntity
     public IEquipment EquippedRing { get; private set; }
 
     // Progression
-    private ExperienceSystem experienceSystem;
+    private Experience experienceSystem;
 
     public int CurrentLevel => experienceSystem.CurrentLevel;
 
@@ -38,7 +38,7 @@ public class Player : IEntity
         MaxHP = BASE_HP;
         Attack = BASE_ATTACK;
         Defense = BASE_DEFENSE;
-        experienceSystem = new ExperienceSystem();
+        experienceSystem = new Experience();
 
         Console.WriteLine($"✨ Joueur créé: {Name}");
         Console.WriteLine($"   HP: {HP}, ATK: {Attack}, DEF: {Defense}");
