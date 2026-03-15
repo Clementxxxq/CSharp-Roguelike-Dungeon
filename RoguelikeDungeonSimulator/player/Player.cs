@@ -2,7 +2,7 @@
 // Une seule instance du joueur existe dans le jeu
 public class Player : IEntity
 {
-    private static Player instance;
+    private static Player? instance;
 
     // Statistiques
     public string Name { get; set; }
@@ -12,14 +12,16 @@ public class Player : IEntity
     public int Defense { get; set; }
 
     // Équipement
-    public IEquipment EquippedWeapon { get; private set; }
-    public IEquipment EquippedArmor { get; private set; }
-    public IEquipment EquippedRing { get; private set; }
+    public IEquipment? EquippedWeapon { get; private set; }
+    public IEquipment? EquippedArmor { get; private set; }
+    public IEquipment? EquippedRing { get; private set; }
 
     // Progression
     private Experience experienceSystem;
 
     public int CurrentLevel => experienceSystem.CurrentLevel;
+    public int CurrentXP => experienceSystem.CurrentXP;
+    public int XPToNextLevel => experienceSystem.XPForNextLevel();
 
     // Statistiques de base
     private const int BASE_HP = 100;
@@ -40,41 +42,29 @@ public class Player : IEntity
         Defense = BASE_DEFENSE;
         experienceSystem = new Experience();
 
-        Console.WriteLine($"✨ Joueur créé: {Name}");
         Console.WriteLine($"   HP: {HP}, ATK: {Attack}, DEF: {Defense}");
     }
 
-    /// <summary>
-    /// Obtient l'instance unique du joueur (Singleton)
-    /// </summary>
+
     public static Player GetInstance()
     {
-        if (instance == null)
-            instance = new Player();
+        instance ??= new Player();
         return instance;
     }
 
-    /// <summary>
-    /// Réinitialise l'instance unique (utile pour les tests)
-    /// </summary>
     public static void ResetInstance()
     {
         instance = null;
     }
 
-    /// <summary>
-    /// Le joueur attaque un ennemi
-    /// </summary>
+
     public void AttackEnemy(Enemy enemy)
     {
         int damage = CalculateDamage(enemy);
-        Console.WriteLine($"\n⚔️  {Name} attaque {enemy.Name} pour {damage} dégâts!");
         enemy.TakeDamage(damage);
     }
 
-    /// <summary>
-    /// Le joueur reçoit des dégâts
-    /// </summary>
+
     public void TakeDamage(int damage)
     {
         int reducedDamage = damage - Defense;
@@ -84,54 +74,53 @@ public class Player : IEntity
         HP -= reducedDamage;
         if (HP < 0)
             HP = 0;
-
-        Console.WriteLine($"💔 {Name} subit {reducedDamage} dégâts (PV: {HP}/{MaxHP})");
     }
 
-    /// <summary>
-    /// Calcule les dégâts infligés
-    /// </summary>
     public int CalculateDamage(IEntity target)
     {
         return Attack;
     }
 
-    /// <summary>
-    /// Le joueur gagne de l'expérience
-    /// </summary>
-    public void GainExperience(int xpAmount)
+
+    public bool GainExperience(int xpAmount)
     {
-        experienceSystem.GainXP(xpAmount);
+        if (xpAmount <= 0)
+            return false;
+
+        int previousLevel = experienceSystem.CurrentLevel;
+        bool leveledUp = experienceSystem.GainXP(xpAmount);
 
         // Bonus de statistiques à chaque montée de niveau
-        if (experienceSystem.CurrentLevel > 1)
+        if (experienceSystem.CurrentLevel > previousLevel)
         {
             ApplyLevelUpBonuses();
         }
+
+        return leveledUp;
     }
 
-    /// <summary>
-    /// Applique les bonus de montée de niveau
-    /// </summary>
+
     private void ApplyLevelUpBonuses()
     {
         int levelDifference = experienceSystem.CurrentLevel - 1;
-        MaxHP = BASE_HP + (levelDifference * HP_PER_LEVEL);
-        Attack = BASE_ATTACK + (levelDifference * ATTACK_PER_LEVEL);
-        Defense = BASE_DEFENSE + (levelDifference * DEFENSE_PER_LEVEL);
+        int equipmentAttackBonus = (EquippedWeapon?.AttackBonus ?? 0) + (EquippedArmor?.AttackBonus ?? 0) + (EquippedRing?.AttackBonus ?? 0);
+        int equipmentDefenseBonus = (EquippedWeapon?.DefenseBonus ?? 0) + (EquippedArmor?.DefenseBonus ?? 0) + (EquippedRing?.DefenseBonus ?? 0);
+        int equipmentHealthBonus = (EquippedWeapon?.MaxHPBonus ?? 0) + (EquippedArmor?.MaxHPBonus ?? 0) + (EquippedRing?.MaxHPBonus ?? 0);
 
-        // Restaurer les PV complètement
+        MaxHP = BASE_HP + (levelDifference * HP_PER_LEVEL) + equipmentHealthBonus;
+        Attack = BASE_ATTACK + (levelDifference * ATTACK_PER_LEVEL) + equipmentAttackBonus;
+        Defense = BASE_DEFENSE + (levelDifference * DEFENSE_PER_LEVEL) + equipmentDefenseBonus;
+
         HP = MaxHP;
 
-        Console.WriteLine($"📊 Statistiques augmentées!");
-        Console.WriteLine($"   HP: {MaxHP}, ATK: {Attack}, DEF: {Defense}");
+        Console.WriteLine($"Niveau {CurrentLevel} atteint! Stats -> HP: {MaxHP}, ATK: {Attack}, DEF: {Defense}");
     }
 
-    /// <summary>
-    /// Équipe une arme
-    /// </summary>
     public void EquipWeapon(IEquipment weapon)
     {
+        if (weapon is null)
+            throw new ArgumentNullException(nameof(weapon));
+
         if (EquippedWeapon != null)
         {
             EquippedWeapon.RemoveBonus(this);
@@ -140,12 +129,11 @@ public class Player : IEntity
         EquippedWeapon = weapon;
         weapon.ApplyBonus(this);
     }
-
-    /// <summary>
-    /// Équipe une armure
-    /// </summary>
     public void EquipArmor(IEquipment armor)
     {
+        if (armor is null)
+            throw new ArgumentNullException(nameof(armor));
+
         if (EquippedArmor != null)
         {
             EquippedArmor.RemoveBonus(this);
@@ -155,11 +143,11 @@ public class Player : IEntity
         armor.ApplyBonus(this);
     }
 
-    /// <summary>
-    /// Équipe un anneau
-    /// </summary>
     public void EquipRing(IEquipment ring)
     {
+        if (ring is null)
+            throw new ArgumentNullException(nameof(ring));
+
         if (EquippedRing != null)
         {
             EquippedRing.RemoveBonus(this);
@@ -169,24 +157,18 @@ public class Player : IEntity
         ring.ApplyBonus(this);
     }
 
-    /// <summary>
-    /// Vérifie si le joueur est vivant
-    /// </summary>
     public bool IsAlive()
     {
         return HP > 0;
     }
 
-    public override string ToString()
+    public string GetEquipmentSummary()
     {
-        var equipment = new System.Collections.Generic.List<string>();
-        if (EquippedWeapon != null) equipment.Add(EquippedWeapon.Name);
-        if (EquippedArmor != null) equipment.Add(EquippedArmor.Name);
-        if (EquippedRing != null) equipment.Add(EquippedRing.Name);
-
-        string equipmentStr = equipment.Count > 0 ? string.Join(", ", equipment) : "Aucun";
-
-        return $"{Name} | Niveau {experienceSystem.CurrentLevel} | PV: {HP}/{MaxHP} | ATK: {Attack} | DEF: {Defense}\n" +
-               $"Équipement: {equipmentStr}";
+        string weapon = EquippedWeapon?.Name ?? "Aucune";
+        string armor = EquippedArmor?.Name ?? "Aucune";
+        string ring = EquippedRing?.Name ?? "Aucun";
+        return $"Arme: {weapon}, Armure: {armor}, Anneau: {ring}";
     }
+
+
 }

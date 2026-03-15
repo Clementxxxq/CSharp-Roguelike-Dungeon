@@ -1,4 +1,6 @@
-using System;
+/// <summary>
+/// Base class for all equipment types
+/// </summary>
 public abstract class Equipment : IEquipment
 {
     public string Name { get; protected set; }
