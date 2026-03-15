@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿class Program
 {
     static void Main(string[] args)
@@ -22,5 +23,14 @@
         }
 
         Console.WriteLine("Merci d'avoir joue!");
+=======
+﻿// Point d'entrée principal du simulateur de donjon roguelike
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine("=== Roguelike Dungeon Simulator ===");
+        Console.WriteLine("En cours de développement...");
+>>>>>>> e61297039b8a99fb0748cf4f19986d0ed5bc7f08
     }
 }
