@@ -11,13 +11,28 @@ public static class ProveduralGenerationAlgorithms
 
         for (int i = 0; i < walkLength; i++)
         {
-            var newPos = previousPos + Direction2D.GetRandomDirection();
+            var newPos = previousPos + Direction2D.GetRandomCardinalDirection();
 
             path.Add(newPos);
             previousPos = newPos;
 
         }
         return path;
+    }
+    public static List<Vector2Int> RandomWalkCorridor(Vector2Int startPosition, int corridorLength)
+    {
+        List<Vector2Int> corridor = new List<Vector2Int>();
+        var direction = Direction2D.GetRandomCardinalDirection();
+        var currentPosition = startPosition;
+        corridor.Add(currentPosition);
+
+        for (int i = 0; i < corridorLength; i++)
+        {
+            currentPosition += direction;
+            corridor.Add(currentPosition);
+
+        }
+        return corridor;
     }
 }
 
@@ -30,7 +45,7 @@ public static class Direction2D
         new Vector2Int(0, -1), // Down
         new Vector2Int(-1, 0) // Left
     };
-    public static Vector2Int GetRandomDirection()
+    public static Vector2Int GetRandomCardinalDirection()
     {
         return cardinalDirectionsList[Random.Range(0, cardinalDirectionsList.Count)];
     }
