@@ -1,147 +1,56 @@
-# Workflow (Updated 2026-03-10)
+# Workflow (Updated 2026-03-31)
 
 ## 1. Goal
 
-Build a playable vertical slice of the roguelike using:
-- Backend: C#/.NET game rules and state
-- Frontend: Unity 2D presentation and input
-- Integration: direct assembly reference first, network/API later
+Ship and iterate the roguelike using a Unity-only workflow.
+
+All gameplay logic is now maintained as Unity source code.
+No separate backend build or DLL export is part of the workflow.
 
 ---
 
-## 2. Current Project Snapshot
+## 2. Source of Truth
 
-### Backend (`RoguelikeDungeonSimulator/`)
+- Unity project: `UnityClient/`
+- Core gameplay code: `UnityClient/Assets/Scripts/GameCore/`
+- Supporting docs: `Docs/`
 
-Implemented:
-- Domain entities and interfaces: `IEntity.cs`, `IEquipments.cs`, `Enemy.cs`, `Player.cs`, `Rooms.cs`
-- Factories and variants: `EnemyFactory.cs`, `EnemyTypes.cs`, `EquipmentFactory.cs`, `RoomFactory.cs`
-- Progression: `Experience.cs`
-- Builds successfully with warnings (`dotnet build`)
-
-Missing or incomplete:
-- `Program.cs` is still a placeholder (no game loop)
-- No `GameManager` orchestration layer yet
-- No explicit combat service with turn flow and rewards pipeline
-- No test project yet
-
-### Unity (`UnityClient/`)
-
-Implemented:
-- Basic movement script: `Assets/Scripts/PlayerMove.cs`
-- Asset import work in progress
-
-Missing or incomplete:
-- No backend bridge (`BackendManager`) yet
-- No gameplay UI (HP, XP, room status)
-- No room/encounter rendering pipeline
-- No end-to-end playable loop in Unity yet
+GameCore folders:
+- `enemy/`
+- `player/`
+- `manager/`
+- `room/`
+- `equipment/`
 
 ---
 
-## 3. Development Workflow (Execution-Focused)
+## 3. Daily Development Loop
 
-### Phase A: Backend Vertical Slice (Priority: P0)
-
-Target outcome:
-- Console version can run a full dungeon flow (rooms -> combats -> rewards -> boss -> end).
-
-Tasks:
-- Add `GameManager.cs` to orchestrate state transitions.
-- Add `CombatSystem.cs` (or equivalent) for deterministic turn-based combat.
-- Add reward resolution step after each cleared combat room.
-- Replace placeholder `Program.cs` with playable loop.
-- Define simple action model (`Attack`, `UseItem`, `EquipReward`, `Continue`).
-
-Definition of done:
-- `dotnet run` plays through at least one full run without manual code edits.
-
-Recommended commits:
-- `feat: add game manager and run loop`
-- `feat: implement turn-based combat flow`
-- `feat: add post-combat reward resolution`
-
-### Phase B: Backend Contract for Unity (Priority: P0)
-
-Target outcome:
-- Backend exposes stable data contract that Unity can consume.
-
-Tasks:
-- Add DTOs for game state snapshot (player stats, current room, enemies, combat flags).
-- Add command/result API surface (method calls, not HTTP yet):
-    - `GetState()`
-    - `ExecuteAction(action)`
-- Add JSON serialization helpers for debug/logging.
-
-Definition of done:
-- A small console test can serialize and print complete state after each action.
-
-Recommended commits:
-- `feat: add game state dto contract`
-- `feat: add backend command api surface`
-
-### Phase C: Unity Integration MVP (Priority: P1)
-
-Target outcome:
-- Unity can drive one full backend run.
-
-Tasks:
-- Add `BackendManager.cs` in Unity to call backend assembly.
-- Add minimal UI panel (HP/ATK/DEF/XP/current room).
-- Bind one player action button to backend command and refresh UI from returned state.
-- Keep `PlayerMove.cs` as visual/controller layer only.
-
-Definition of done:
-- Pressing Play in Unity allows entering rooms, triggering combat actions, and reaching game over or victory.
-
-Recommended commits:
-- `feat: integrate backend manager in unity`
-- `feat: add minimal gameplay hud`
-- `feat: bind action flow to backend state`
-
-### Phase D: Stabilization and Tests (Priority: P1)
-
-Tasks:
-- Create backend test project and add tests for:
-    - Damage calculation
-    - Level up logic
-    - Enemy/room factory generation rules
-- Fix nullable warnings in `Player.cs` (non-null init strategy)
-- Balance values after gameplay testing
-
-Definition of done:
-- Core combat/progression tests pass and warnings are reduced.
-
-Recommended commits:
-- `test: add combat and progression unit tests`
-- `fix: resolve nullable warnings in player model`
+1. Open `UnityClient/` in Unity Editor.
+2. Implement one vertical change in `Assets/Scripts/GameCore/`.
+3. Press Play and verify the behavior in-scene.
+4. Fix compile/runtime issues in Console.
+5. Commit only source changes and related docs.
 
 ---
 
-## 4. Daily Working Loop
+## 4. Engineering Rules
 
-1. Pull latest changes.
-2. Pick one small vertical task (max half-day).
-3. Implement + run local checks.
-4. Commit with Conventional Commit message.
-5. Update docs if behavior changed.
-
-Backend check command:
-```bash
-cd RoguelikeDungeonSimulator
-dotnet build RoguelikeDungeonSimulator.sln
-dotnet run
-```
+- Do not add back DLL-based game logic integration.
+- Prefer source-level refactors in `GameCore` over plugin binaries.
+- Keep gameplay logic and UI/controller concerns separated:
+    - Logic in `GameCore`
+    - Presentation/input in scene scripts
+- Update docs when balance rules or gameplay flow changes.
 
 ---
 
-## 5. Immediate Next Actions (This Week)
+## 5. This Week Priorities
 
-- [ ] Create `GameManager.cs` and move run orchestration out of `Program.cs`
-- [ ] Implement combat turn loop callable by one public method
-- [ ] Add one reward selection flow after combat victory
-- [ ] Replace placeholder `Program.cs` with playable run
-- [ ] Add first state DTO and `GetState()` method
+- [ ] Replace any remaining DLL-era references in scenes/scripts
+- [ ] Add one in-Unity combat debug panel (HP, XP, room, enemy list)
+- [ ] Add play mode tests for combat and leveling
+- [ ] Tune enemy/player values directly in `GameCore`
 
-If these five tasks are done, Unity integration can start immediately with low refactor cost.
+If these are done, iteration speed stays high without backend coupling.
 

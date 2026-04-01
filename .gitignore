@@ -1,24 +1,41 @@
-# IDE and Editor
+# IDE and editors
 .vs/
 .vscode/
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
+.idea/
+.rider/
+*.sln.iml
+riderModule.iml
 *.swp
 *.swo
 *~
-.idea/
 *.sublime-workspace
 *.sublime-project
 
-# Build artifacts
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment and local config
+.env
+.env.local
+.env.*.local
+appsettings.local.json
+appsettings.Development.json
+launchSettings.json
+
+# Build outputs and binaries
 bin/
 obj/
 .nunit/
-
-# Build results
-*.dll
-*.exe
-*.pdb
-*.user
-*.VisualState.xml
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
@@ -28,87 +45,47 @@ x86/
 [Ww][Ii][Nn]32/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
+[Oo]ut/
+[Tt]mp/
+*.dll
+*.exe
+*.pdb
+*.apk
+*.exe.meta
+*.apk.meta
 
-# User-specific files
+# User-specific and tooling cache
+*.user
 *.rsuser
 *.suo
 *.userosscache
 *.sln.docstates
 *.opendb
 *.opensdf
-
-# NuGet
-*.nupkg
-*.snupkg
-packages/
-.nuget/
-NuGetFallbackFolder/
-
-# Rider
-.idea/
-*.sln.iml
-.rider/
-riderModule.iml
-
-# JetBrains ReSharper
+*.csproj.user
+*.sln.user
 _ReSharper*/
 *.DotSettings.user
 .resharper
-
-# Visual Studio Code
-.vscode/settings.json
-.vscode/tasks.json
-.vscode/launch.json
-.vscode/extensions.json
-
-# Local environment files
-.env
-.env.local
-.env.*.local
-appsettings.local.json
-appsettings.Development.json
-
-# OS-specific
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Project files
-*.csproj.user
-*.sln.user
-launchSettings.json
-
-# Logs
-*.log
-logs/
-[Ll]ibrary/
-[Ll]ogs/
-[Ll]og/
-[Oo]ut/
-[Tt]emp/
-[Tt]mp/
-[Uu]serSettings/
-
-# Visual Studio Cache/Options
 .cache/
 .cache-*
-
-# Diagnostic files
 diagnostics/
 *.lex
 
-# Test coverage
+# Packages and coverage
+packages/
+.nuget/
+NuGetFallbackFolder/
+*.nupkg
+*.snupkg
 coverage/
 *.coverage
 opencover/
 
-# Unity-specific
+# Unity generated files
 [Ll]ibrary/
 [Ll]ogs/
+[Ll]og/
 [Uu]serSettings/
 [Uu]serData/
 [Tt]emp/
@@ -118,34 +95,23 @@ opencover/
 [Bb]uilds/
 [Ff]reeze/
 MasterServerCache*
-
-# Unity Editor
-.vs/
-.vscode/
 *.csproj
 *.sln
 *.pidb
 *.booproj
 *.unityproj
 *.userprefs
-
-# Unity Packages
 *.unitypackage
 *.unitypackage.meta
 
-# Build outputs
-*.exe
-*.exe.meta
-*.apk
-*.apk.meta
-*.unitypackage
-
-# Rider/ReSharper
-.idea/
-*.sln.iml
-
-# Visual Studio
-.vs/
-.vscode/
+# Local Unity assets not for push
+UnityClient/Assets/Scripts/New Folder/
+UnityClient/Assets/Scripts/New Folder.meta
+UnityClient/Assets/Scenes/New Scene.unity
+UnityClient/Assets/Scenes/New Scene.unity.meta
+UnityClient/Assets/Tiles/
+UnityClient/Assets/Tiles.meta
+UnityClient/Assets/UI/
+UnityClient/Assets/UI.meta
 
 
