@@ -23,11 +23,11 @@ public class CombatSystem
         var logBuilder = new StringBuilder();
         int round = 1;
 
-        logBuilder.AppendLine("=== 房间 " + room.RoomNumber + " 战斗开始 ===");
+        logBuilder.AppendLine("=== Room " + room.RoomNumber + " Combat Start ===");
 
         while (player.IsAlive() && !room.AreAllEnemiesDefeated())
         {
-            logBuilder.AppendLine("-- 回合 " + round + " --");
+            logBuilder.AppendLine("-- Round " + round + " --");
             logBuilder.AppendLine(BuildCombatState(player, room));
 
             HandlePlayerTurn(player, room, logBuilder);
@@ -45,11 +45,11 @@ public class CombatSystem
         {
             xpGained = room.Enemies.Sum(e => e.XPReward);
             room.IsCleared = true;
-            logBuilder.AppendLine("房间 " + room.RoomNumber + " 已清理，获得经验: " + xpGained + "。");
+            logBuilder.AppendLine("Room " + room.RoomNumber + " cleared, XP gained: " + xpGained + ".");
         }
         else
         {
-            logBuilder.AppendLine("你被击败了。");
+            logBuilder.AppendLine("You were defeated.");
         }
 
         return new CombatResult(playerWon, xpGained, logBuilder.ToString().TrimEnd());
@@ -58,8 +58,8 @@ public class CombatSystem
     private static string BuildCombatState(Player player, Room room)
     {
         var summary = new StringBuilder();
-        summary.AppendLine("玩家 -> HP: " + player.HP + "/" + player.MaxHP + ", ATK: " + player.Attack + ", DEF: " + player.Defense);
-        summary.AppendLine("敌人:");
+        summary.AppendLine("Player -> HP: " + player.HP + "/" + player.MaxHP + ", ATK: " + player.Attack + ", DEF: " + player.Defense);
+        summary.AppendLine("Enemies:");
 
         var aliveEnemies = room.Enemies.Where(e => e.IsAlive()).ToList();
         for (int i = 0; i < aliveEnemies.Count; i++)
@@ -79,7 +79,7 @@ public class CombatSystem
 
         int damage = player.CalculateDamage(target);
         target.TakeDamage(damage);
-        logBuilder.AppendLine("玩家攻击 " + target.Name + "，造成 " + damage + " 点伤害。");
+        logBuilder.AppendLine("Player attacks " + target.Name + ", dealing " + damage + " damage.");
     }
 
     private static void HandleEnemyTurn(Player player, Room room, StringBuilder logBuilder)
@@ -89,7 +89,7 @@ public class CombatSystem
             int rawDamage = enemy.CalculateDamage(player);
             int expectedDamage = Math.Max(1, rawDamage - player.Defense);
 
-            logBuilder.AppendLine(enemy.Name + " 反击，造成 " + expectedDamage + " 点伤害。");
+            logBuilder.AppendLine(enemy.Name + " counterattacks, dealing " + expectedDamage + " damage.");
             player.TakeDamage(rawDamage);
 
             if (!player.IsAlive())

@@ -28,7 +28,7 @@ public class RoomManager
 
     public string GetCurrentRoomTypeLabel()
     {
-        return IsFinalRoom() ? "Boss 房间" : "普通房间";
+        return IsFinalRoom() ? "Boss Room" : "Normal Room";
     }
 
     public void MoveToNextRoom()

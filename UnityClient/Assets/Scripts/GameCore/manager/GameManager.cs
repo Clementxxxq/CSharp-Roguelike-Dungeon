@@ -3,27 +3,28 @@ using System;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance { get; private set; }
+    public static GameManager Instance { get; private set; } //Singleton
     private Player player;
     private readonly CombatSystem combatSystem = new CombatSystem();
     private readonly RoomManager roomManager = new RoomManager();
 
-    // Observer: UIManager 等系统可订阅这些事件。
-    public event Action<int, int> OnHPChanged;
+    public event Action<int, int> OnHPChanged; //Observer
     public event Action<int, string> OnRoomChange;
 
-    // State Pattern: 当前游戏状态。
-    private IGameState state;
+    private IGameState state; //State
 
     public bool IsGameStarted { get; private set; }
     public bool IsGameOver { get; private set; }
     public int CurrentRoom => roomManager.CurrentRoom;
     public int LastRoomEnemyCount { get; private set; }
-    public string LastRoomType { get; private set; } = "未开始";
+    public string LastRoomType { get; private set; } = "Not started";
 
     public int PlayerHP => player?.HP ?? 0;
     public int PlayerMaxHP => player?.MaxHP ?? 0;
     public int PlayerAttack => player?.Attack ?? 0;
+    public int PlayerLevel => player?.CurrentLevel ?? 1;
+    public int PlayerXP => player?.CurrentXP ?? 0;
+    public int PlayerXPToNextLevel => player?.XPToNextLevel ?? 1;
 
     private void Awake()
     {
@@ -61,21 +62,9 @@ public class GameManager : MonoBehaviour
 
     public string StartGame()
     {
-        // ===== 原始 StartGame（保留）=====
-        // Player.ResetInstance();
-        // player = Player.GetInstance();
-        //
-        // IsGameStarted = true;
-        // IsGameOver = false;
-        // roomManager.ResetProgress();
-        // LastRoomEnemyCount = 0;
-        // LastRoomType = "普通房间";
-        //
-        // return "游戏开始！点击 Attack 进入第 1 个房间。";
-
         if (!(state is MenuState) && IsGameStarted && !IsGameOver)
         {
-            return "游戏已开始。";
+            return "Game has already started.";
         }
 
         Player.ResetInstance();
@@ -85,78 +74,32 @@ public class GameManager : MonoBehaviour
         IsGameOver = false;
         roomManager.ResetProgress();
         LastRoomEnemyCount = 0;
-        LastRoomType = "普通房间";
+        LastRoomType = "Normal Room";
 
         ChangeState(new PlayingState());
         RaiseHPChanged();
         RaiseRoomChanged();
 
-        return "游戏开始！点击 Attack 进入第 1 个房间。";
+        return "Game started! Click Attack to enter room 1.";
     }
 
     public string RestartGame()
     {
-        // ===== 原始 RestartGame（保留）=====
-        // return StartGame();
-
         ChangeState(new MenuState());
         return StartGame();
     }
 
     public string EnterCurrentRoom()
     {
-        // ===== 原始 EnterCurrentRoom（保留）=====
-        // if (!IsGameStarted)
-        // {
-        //     return "请先点击 Start Game。";
-        // }
-        //
-        // if (IsGameOver)
-        // {
-        //     return "你已死亡，请点击 Restart。";
-        // }
-        //
-        // if (player == null)
-        // {
-        //     return "战斗状态异常，请点击 Restart。";
-        // }
-        //
-        // Room room = roomManager.CreateCurrentRoom();
-        // LastRoomEnemyCount = room.Enemies.Count;
-        // LastRoomType = roomManager.GetCurrentRoomTypeLabel();
-        //
-        // CombatResult result = combatSystem.RunCombat(player, room);
-        // string log = "进入第 " + CurrentRoom + " 房间（" + LastRoomType + "）。\n" + result.CombatLog;
-        //
-        // if (!result.PlayerWon)
-        // {
-        //     IsGameOver = true;
-        //     log += "\n你死亡了！点击 Restart 重新开始。";
-        //     return log;
-        // }
-        //
-        // player.GainExperience(result.XPGained);
-        //
-        // if (roomManager.IsFinalRoom())
-        // {
-        //     IsGameOver = true;
-        //     log += "\n你击败了 Boss，通关！";
-        //     return log;
-        // }
-        //
-        // roomManager.MoveToNextRoom();
-        // log += "\n战斗胜利，点击 Attack 进入第 " + CurrentRoom + " 房间。";
-        // return log;
-
-        return state?.EnterCurrentRoom(this) ?? "状态异常，请点击 Restart。";
+        return state?.EnterCurrentRoom(this) ?? "State error, please click Restart.";
     }
 
-    // PlayingState 的战斗主逻辑。
+    // Main combat flow used by PlayingState.
     internal string EnterCurrentRoomInternal()
     {
         if (player == null)
         {
-            return "战斗状态异常，请点击 Restart。";
+            return "Combat state error, please click Restart.";
         }
 
         Room room = roomManager.CreateCurrentRoom();
@@ -165,30 +108,32 @@ public class GameManager : MonoBehaviour
         RaiseRoomChanged();
 
         CombatResult result = combatSystem.RunCombat(player, room);
-        string log = "进入第 " + CurrentRoom + " 房间（" + LastRoomType + "）。\n" + result.CombatLog;
+        string log = "Entered room " + CurrentRoom + " (" + LastRoomType + ").\n" + result.CombatLog;
         RaiseHPChanged();
 
         if (!result.PlayerWon)
         {
             IsGameOver = true;
             ChangeState(new GameOverState());
-            log += "\n你死亡了！点击 Restart 重新开始。";
+            log += "\nYou died! Click Restart to start over.";
             return log;
         }
 
         player.GainExperience(result.XPGained);
+        // XP/level can change here, so notify UI again.
+        RaiseHPChanged();
 
         if (roomManager.IsFinalRoom())
         {
             IsGameOver = true;
             ChangeState(new GameOverState());
-            log += "\n你击败了 Boss，通关！";
+            log += "\nYou defeated the boss and cleared the game!";
             return log;
         }
 
         roomManager.MoveToNextRoom();
         RaiseRoomChanged();
-        log += "\n战斗胜利，点击 Attack 进入第 " + CurrentRoom + " 房间。";
+        log += "\nBattle won, click Attack to enter room " + CurrentRoom + ".";
         return log;
     }
 
@@ -211,7 +156,7 @@ public class GameManager : MonoBehaviour
 
         public string EnterCurrentRoom(GameManager gm)
         {
-            return "请先点击 Start Game。";
+            return "Please click Start Game first.";
         }
     }
 
@@ -243,7 +188,7 @@ public class GameManager : MonoBehaviour
 
         public string EnterCurrentRoom(GameManager gm)
         {
-            return "你已死亡，请点击 Restart。";
+            return "You are dead, please click Restart.";
         }
     }
 }

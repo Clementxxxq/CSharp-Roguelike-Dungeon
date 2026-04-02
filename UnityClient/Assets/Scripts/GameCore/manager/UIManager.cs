@@ -10,30 +10,84 @@ namespace UIManager
 
     public class UIManager : MonoBehaviour
     {
-        [SerializeField] private Text playerText;
+        [Header("Panels")]
+        [SerializeField] private GameObject startPanel;
+        [SerializeField] private GameObject gameplayPanel;
+        [SerializeField] private GameObject gameOverPanel;
+
+        [Header("Status UI")]
         [SerializeField] private Text enemyText;
         [SerializeField] private Text logText;
-        [SerializeField] private Button startButton;
-        [SerializeField] private Button attackButton;
-        [SerializeField] private Button restartButton;
+        [SerializeField] private Scrollbar hpScrollbar;
+        [SerializeField] private Scrollbar xpScrollbar;
+        [SerializeField] private Text hpBarText;
+        [SerializeField] private Text xpBarText;
+
+        [Header("References")]
         [SerializeField] private GameManager gameManager;
 
         private IUICommand startCommand;
         private IUICommand attackCommand;
         private IUICommand restartCommand;
 
+        private void Awake()
+        {
+            if (gameManager == null)
+            {
+                Debug.LogError("UIManager requires a GameManager reference from Inspector.", this);
+                enabled = false;
+            }
+        }
+
+        private void OnEnable()
+        {
+            SubscribeToGameManagerEvents();
+        }
+
+        private void OnDisable()
+        {
+            UnsubscribeFromGameManagerEvents();
+        }
+
         private void Start()
         {
             if (gameManager == null)
             {
-                gameManager = Object.FindFirstObjectByType<GameManager>();
+                return;
+            }
+
+            if (logText == null)
+            {
+                Debug.LogWarning("UIManager: logText is not assigned. Logs will not be visible.", this);
             }
 
             InitCommands();
-            SetGameplayUIVisible(false);
-            ShowStartOnlyButtons();
+            SetUIState(UIState.Start);
+            RefreshPlayerStatusUI();
+        }
 
-            UpdateUI();
+        private void SubscribeToGameManagerEvents()
+        {
+            if (gameManager == null)
+            {
+                return;
+            }
+
+            gameManager.OnHPChanged -= UpdateHPText;
+            gameManager.OnRoomChange -= UpdateRoomText;
+            gameManager.OnHPChanged += UpdateHPText;
+            gameManager.OnRoomChange += UpdateRoomText;
+        }
+
+        private void UnsubscribeFromGameManagerEvents()
+        {
+            if (gameManager == null)
+            {
+                return;
+            }
+
+            gameManager.OnHPChanged -= UpdateHPText;
+            gameManager.OnRoomChange -= UpdateRoomText;
         }
 
         private void InitCommands()
@@ -46,117 +100,58 @@ namespace UIManager
         public void OnStartGame()
         {
             string log = startCommand.Execute();
-            SetGameplayUIVisible(true);
-            ShowPlayingButtons();
-            AppendLogWithLimit(log, 8);
-            UpdateUI();
+            SetUIState(UIState.Playing);
+            AppendLogSimple(log, 12);
         }
 
         public void OnAttack()
         {
             string log = attackCommand.Execute();
-            AppendLogWithLimit(log, 8);
+            AppendLogSimple(log, 12);
 
             if (gameManager.IsGameOver)
             {
-                ShowGameOverButtons();
+                SetUIState(UIState.GameOver);
             }
-
-            UpdateUI();
         }
 
         public void OnRestartGame()
         {
             string log = restartCommand.Execute();
-            SetGameplayUIVisible(true);
-            ShowPlayingButtons();
+            SetUIState(UIState.Playing);
             SetLog(log);
-            UpdateUI();
         }
 
-        private void SetGameplayUIVisible(bool visible)
+        private enum UIState
         {
-            if (playerText != null)
-                playerText.gameObject.SetActive(visible);
-
-            if (enemyText != null)
-                enemyText.gameObject.SetActive(visible);
-
-            if (logText != null)
-                logText.gameObject.SetActive(visible);
+            Start,
+            Playing,
+            GameOver
         }
 
-        private void ShowStartOnlyButtons()
+        private void SetUIState(UIState state)
         {
-            if (startButton != null)
-            {
-                startButton.gameObject.SetActive(true);
-                startButton.interactable = true;
-            }
+            if (startPanel != null)
+                startPanel.SetActive(state == UIState.Start);
 
-            if (attackButton != null)
-            {
-                attackButton.gameObject.SetActive(false);
-                attackButton.interactable = false;
-            }
+            if (gameplayPanel != null)
+                gameplayPanel.SetActive(state != UIState.Start);
 
-            if (restartButton != null)
-            {
-                restartButton.gameObject.SetActive(false);
-                restartButton.interactable = false;
-            }
+            if (gameOverPanel != null)
+                gameOverPanel.SetActive(state == UIState.GameOver);
         }
 
-        private void ShowPlayingButtons()
-        {
-            if (startButton != null)
-            {
-                startButton.gameObject.SetActive(false);
-                startButton.interactable = false;
-            }
-
-            if (attackButton != null)
-            {
-                attackButton.gameObject.SetActive(true);
-                attackButton.interactable = true;
-            }
-
-            if (restartButton != null)
-            {
-                restartButton.gameObject.SetActive(false);
-                restartButton.interactable = false;
-            }
-        }
-
-        private void ShowGameOverButtons()
-        {
-            if (startButton != null)
-            {
-                startButton.gameObject.SetActive(false);
-                startButton.interactable = false;
-            }
-
-            if (attackButton != null)
-            {
-                attackButton.gameObject.SetActive(false);
-                attackButton.interactable = false;
-            }
-
-            if (restartButton != null)
-            {
-                restartButton.gameObject.SetActive(true);
-                restartButton.interactable = true;
-            }
-        }
-
-        private void AppendLogWithLimit(string newLog, int maxLines)
+        private void AppendLogSimple(string newLog, int maxLines)
         {
             if (logText == null)
                 return;
 
-            string fullLog = logText.text + "\n" + newLog;
-            string[] lines = fullLog.Split('\n');
+            if (string.IsNullOrEmpty(newLog))
+                return;
 
+            string fullLog = string.IsNullOrEmpty(logText.text) ? newLog : logText.text + "\n" + newLog;
+
+            string[] lines = fullLog.Split('\n');
             if (lines.Length > maxLines)
             {
                 string[] recentLines = new string[maxLines];
@@ -167,27 +162,80 @@ namespace UIManager
             {
                 logText.text = fullLog;
             }
+
+            Canvas.ForceUpdateCanvases();
         }
 
         private void SetLog(string message)
         {
-
-            logText.text = message;
-        
+            if (logText != null)
+            {
+                logText.text = message;
+            }
         }
 
-        private void UpdateUI()
+        private void UpdateHPText(int currentHp, int maxHp)
         {
+            if (gameManager == null)
+            {
+                return;
+            }
 
-            playerText.text =
-                "Player HP: " + gameManager.PlayerHP + "/" + gameManager.PlayerMaxHP + "\n" +
-                "ATK: " + gameManager.PlayerAttack + "\n" +
-                "Room: " + gameManager.CurrentRoom;
+            RefreshPlayerStatusUI(currentHp, maxHp, gameManager.PlayerXP, gameManager.PlayerXPToNextLevel);
+        }
 
-            enemyText.text =
-                "Room Type: " + gameManager.LastRoomType + "\n" +
-                "Enemy Count: " + gameManager.LastRoomEnemyCount;
+        private void RefreshPlayerStatusUI()
+        {
+            if (gameManager == null)
+            {
+                return;
+            }
 
+            RefreshPlayerStatusUI(
+                gameManager.PlayerHP,
+                gameManager.PlayerMaxHP,
+                gameManager.PlayerXP,
+                gameManager.PlayerXPToNextLevel);
+        }
+
+        private void RefreshPlayerStatusUI(int currentHp, int maxHp, int currentXp, int xpToNext)
+        {
+            int safeMaxHp = Mathf.Max(1, maxHp);
+            int safeXpToNext = Mathf.Max(1, xpToNext);
+            float hpNormalized = Mathf.Clamp01((float)Mathf.Clamp(currentHp, 0, safeMaxHp) / safeMaxHp);
+            float xpNormalized = Mathf.Clamp01((float)Mathf.Clamp(currentXp, 0, safeXpToNext) / safeXpToNext);
+
+            if (hpScrollbar != null)
+            {
+                hpScrollbar.size = hpNormalized;
+            }
+
+            if (xpScrollbar != null)
+            {
+                xpScrollbar.size = xpNormalized;
+            }
+
+            if (hpBarText != null)
+            {
+                hpBarText.text = currentHp + "/" + safeMaxHp;
+            }
+
+            if (xpBarText != null)
+            {
+                xpBarText.text = currentXp + "/" + safeXpToNext;
+            }
+        }
+
+        private void UpdateRoomText(int roomNumber, string roomType)
+        {
+            RefreshPlayerStatusUI();
+
+            if (enemyText != null)
+            {
+                enemyText.text =
+                    "Room Type: " + roomType + "\n" +
+                    "Enemy Count: " + gameManager.LastRoomEnemyCount;
+            }
         }
     }
 }
