@@ -5,7 +5,6 @@ public class Player : IEntity
     private static Player instance;
 
     // Statistiques
-    public string Name { get; set; }
     public int HP { get; set; }
     public int MaxHP { get; set; }
     public int Attack { get; set; }
@@ -32,7 +31,6 @@ public class Player : IEntity
 
     private Player()
     {
-        Name = "Héros";
         HP = BASE_HP;
         MaxHP = BASE_HP;
         Attack = BASE_ATTACK;

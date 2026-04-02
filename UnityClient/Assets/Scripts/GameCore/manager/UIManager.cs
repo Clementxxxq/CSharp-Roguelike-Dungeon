@@ -22,6 +22,7 @@ namespace UIManager
         [SerializeField] private Scrollbar xpScrollbar;
         [SerializeField] private Text hpBarText;
         [SerializeField] private Text xpBarText;
+        [SerializeField] private Text playerInfoText; // 玩家等级和属性显示
 
         [Header("References")]
         [SerializeField] private GameManager gameManager;
@@ -51,10 +52,7 @@ namespace UIManager
 
         private void Start()
         {
-            if (gameManager == null)
-            {
-                return;
-            }
+            if (gameManager == null) return;
 
             if (logText == null)
             {
@@ -68,10 +66,7 @@ namespace UIManager
 
         private void SubscribeToGameManagerEvents()
         {
-            if (gameManager == null)
-            {
-                return;
-            }
+            if (gameManager == null) return;
 
             gameManager.OnHPChanged -= UpdateHPText;
             gameManager.OnRoomChange -= UpdateRoomText;
@@ -81,10 +76,7 @@ namespace UIManager
 
         private void UnsubscribeFromGameManagerEvents()
         {
-            if (gameManager == null)
-            {
-                return;
-            }
+            if (gameManager == null) return;
 
             gameManager.OnHPChanged -= UpdateHPText;
             gameManager.OnRoomChange -= UpdateRoomText;
@@ -143,11 +135,7 @@ namespace UIManager
 
         private void AppendLogSimple(string newLog, int maxLines)
         {
-            if (logText == null)
-                return;
-
-            if (string.IsNullOrEmpty(newLog))
-                return;
+            if (logText == null || string.IsNullOrEmpty(newLog)) return;
 
             string fullLog = string.IsNullOrEmpty(logText.text) ? newLog : logText.text + "\n" + newLog;
 
@@ -169,27 +157,32 @@ namespace UIManager
         private void SetLog(string message)
         {
             if (logText != null)
-            {
                 logText.text = message;
-            }
         }
 
         private void UpdateHPText(int currentHp, int maxHp)
         {
-            if (gameManager == null)
-            {
-                return;
-            }
+            if (gameManager == null) return;
 
             RefreshPlayerStatusUI(currentHp, maxHp, gameManager.PlayerXP, gameManager.PlayerXPToNextLevel);
         }
 
+        private void RefreshPlayerInfoUI()
+        {
+            if (playerInfoText == null || gameManager == null) return;
+
+            Player player = Player.GetInstance();
+            if (player == null) return;
+
+            playerInfoText.text =
+                $"Niveau: {player.CurrentLevel}  " +
+                $"Attaque: {player.Attack}  " +
+                $"Défense: {player.Defense}";
+        }
+
         private void RefreshPlayerStatusUI()
         {
-            if (gameManager == null)
-            {
-                return;
-            }
+            if (gameManager == null) return;
 
             RefreshPlayerStatusUI(
                 gameManager.PlayerHP,
@@ -202,28 +195,23 @@ namespace UIManager
         {
             int safeMaxHp = Mathf.Max(1, maxHp);
             int safeXpToNext = Mathf.Max(1, xpToNext);
+
             float hpNormalized = Mathf.Clamp01((float)Mathf.Clamp(currentHp, 0, safeMaxHp) / safeMaxHp);
             float xpNormalized = Mathf.Clamp01((float)Mathf.Clamp(currentXp, 0, safeXpToNext) / safeXpToNext);
 
             if (hpScrollbar != null)
-            {
                 hpScrollbar.size = hpNormalized;
-            }
 
             if (xpScrollbar != null)
-            {
                 xpScrollbar.size = xpNormalized;
-            }
 
             if (hpBarText != null)
-            {
                 hpBarText.text = currentHp + "/" + safeMaxHp;
-            }
 
             if (xpBarText != null)
-            {
                 xpBarText.text = currentXp + "/" + safeXpToNext;
-            }
+
+            RefreshPlayerInfoUI(); // 刷新玩家信息
         }
 
         private void UpdateRoomText(int roomNumber, string roomType)
