@@ -29,6 +29,8 @@ namespace UIManager
 
         private IUICommand startCommand;
         private IUICommand attackCommand;
+        private IUICommand defendCommand;
+        private IUICommand skillCommand;
         private IUICommand restartCommand;
 
         private void Awake()
@@ -86,13 +88,15 @@ namespace UIManager
         {
             startCommand = new StartCommand(gameManager);
             attackCommand = new AttackCommand(gameManager);
+            defendCommand = new DefendCommand(gameManager);
+            skillCommand = new SkillCommand(gameManager);
             restartCommand = new RestartCommand(gameManager);
         }
 
         public void OnStartGame()
         {
             string log = startCommand.Execute();
-            SetUIState(UIState.Playing);
+            SetUIState(gameManager.IsGameOver ? UIState.GameOver : UIState.Playing);
             AppendLogSimple(log, 12);
         }
 
@@ -107,10 +111,32 @@ namespace UIManager
             }
         }
 
+        public void OnDefend()
+        {
+            string log = defendCommand.Execute();
+            AppendLogSimple(log, 12);
+
+            if (gameManager.IsGameOver)
+            {
+                SetUIState(UIState.GameOver);
+            }
+        }
+
+        public void OnSkill()
+        {
+            string log = skillCommand.Execute();
+            AppendLogSimple(log, 12);
+
+            if (gameManager.IsGameOver)
+            {
+                SetUIState(UIState.GameOver);
+            }
+        }
+
         public void OnRestartGame()
         {
             string log = restartCommand.Execute();
-            SetUIState(UIState.Playing);
+            SetUIState(gameManager.IsGameOver ? UIState.GameOver : UIState.Playing);
             SetLog(log);
         }
 
@@ -127,7 +153,7 @@ namespace UIManager
                 startPanel.SetActive(state == UIState.Start);
 
             if (gameplayPanel != null)
-                gameplayPanel.SetActive(state != UIState.Start);
+                gameplayPanel.SetActive(state == UIState.Playing);
 
             if (gameOverPanel != null)
                 gameOverPanel.SetActive(state == UIState.GameOver);
@@ -171,13 +197,17 @@ namespace UIManager
         {
             if (playerInfoText == null || gameManager == null) return;
 
-            Player player = Player.GetInstance();
-            if (player == null) return;
+            if (!gameManager.IsGameStarted)
+            {
+                playerInfoText.text = "Niveau: -  Attaque: -  Defense: -  Skill CD: -";
+                return;
+            }
 
             playerInfoText.text =
-                $"Niveau: {player.CurrentLevel}  " +
-                $"Attaque: {player.Attack}  " +
-                $"Défense: {player.Defense}";
+                $"Niveau: {gameManager.PlayerLevel}  " +
+                $"Attaque: {gameManager.PlayerAttack}  " +
+                $"Defense: {gameManager.PlayerDefense}  " +
+                $"Skill CD: {gameManager.PlayerSkillCooldown}";
         }
 
         private void RefreshPlayerStatusUI()
@@ -211,7 +241,7 @@ namespace UIManager
             if (xpBarText != null)
                 xpBarText.text = currentXp + "/" + safeXpToNext;
 
-            RefreshPlayerInfoUI(); // 刷新玩家信息
+            RefreshPlayerInfoUI(); 
         }
 
         private void UpdateRoomText(int roomNumber, string roomType)

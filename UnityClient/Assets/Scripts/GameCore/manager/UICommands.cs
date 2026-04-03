@@ -26,7 +26,37 @@ namespace UIManager
 
         public string Execute()
         {
-            return gameManager.EnterCurrentRoom();
+            return gameManager.EnterCurrentRoom(PlayerAction.Attack);
+        }
+    }
+
+    public sealed class DefendCommand : IUICommand
+    {
+        private readonly GameManager gameManager;
+
+        public DefendCommand(GameManager gameManager)
+        {
+            this.gameManager = gameManager;
+        }
+
+        public string Execute()
+        {
+            return gameManager.EnterCurrentRoom(PlayerAction.Defend);
+        }
+    }
+
+    public sealed class SkillCommand : IUICommand
+    {
+        private readonly GameManager gameManager;
+
+        public SkillCommand(GameManager gameManager)
+        {
+            this.gameManager = gameManager;
+        }
+
+        public string Execute()
+        {
+            return gameManager.EnterCurrentRoom(PlayerAction.Skill);
         }
     }
 

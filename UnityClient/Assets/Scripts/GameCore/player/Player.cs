@@ -4,6 +4,9 @@ public class Player : IEntity
 {
     private static Player instance;
 
+    private const int POWER_STRIKE_COOLDOWN_TURNS = 3;
+    private const float POWER_STRIKE_MULTIPLIER = 1.8f;
+
     // Statistiques
     public int HP { get; set; }
     public int MaxHP { get; set; }
@@ -18,6 +21,7 @@ public class Player : IEntity
     public int CurrentLevel => experienceSystem.CurrentLevel;
     public int CurrentXP => experienceSystem.CurrentXP;
     public int XPToNextLevel => experienceSystem.XPForNextLevel();
+    public int PowerStrikeCooldownRemaining { get; private set; }
 
     // Statistiques de base
     private const int BASE_HP = 100;
@@ -36,6 +40,7 @@ public class Player : IEntity
         Attack = BASE_ATTACK;
         Defense = BASE_DEFENSE;
         experienceSystem = new Experience();
+        PowerStrikeCooldownRemaining = 0;
     }
 
 
@@ -60,18 +65,47 @@ public class Player : IEntity
 
     public void TakeDamage(int damage)
     {
-        int reducedDamage = damage - Defense;
+        TakeDamageWithDefense(damage, false);
+    }
+
+    public int TakeDamageWithDefense(int damage, bool isDefending)
+    {
+        int reducedDamage = isDefending ? (int)System.Math.Ceiling(damage * 0.5f) : damage;
+        reducedDamage -= Defense;
         if (reducedDamage < 1)
             reducedDamage = 1;
 
         HP -= reducedDamage;
         if (HP < 0)
             HP = 0;
+
+        return reducedDamage;
     }
 
     public int CalculateDamage(IEntity target)
     {
         return Attack;
+    }
+
+    public bool CanUsePowerStrike()
+    {
+        return PowerStrikeCooldownRemaining <= 0;
+    }
+
+    public int UsePowerStrike(IEntity target)
+    {
+        int baseDamage = CalculateDamage(target);
+        int skillDamage = (int)System.Math.Ceiling(baseDamage * POWER_STRIKE_MULTIPLIER);
+        PowerStrikeCooldownRemaining = POWER_STRIKE_COOLDOWN_TURNS;
+        return skillDamage;
+    }
+
+    public void TickSkillCooldown()
+    {
+        if (PowerStrikeCooldownRemaining > 0)
+        {
+            PowerStrikeCooldownRemaining--;
+        }
     }
 
 

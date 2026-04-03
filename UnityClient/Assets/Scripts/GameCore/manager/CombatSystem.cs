@@ -2,44 +2,76 @@ using System;
 using System.Text;
 using System.Linq;
 
+public enum PlayerAction
+{
+    Attack,
+    Defend,
+    Skill
+}
+
 public sealed class CombatResult
 {
-    public CombatResult(bool playerWon, int xpGained, string combatLog)
+    public CombatResult(bool isCombatFinished, bool playerWon, int xpGained, string combatLog, string enemyIntentText)
     {
+        IsCombatFinished = isCombatFinished;
         PlayerWon = playerWon;
         XPGained = xpGained;
         CombatLog = combatLog;
+        EnemyIntentText = enemyIntentText;
     }
 
+    public bool IsCombatFinished { get; }
     public bool PlayerWon { get; }
     public int XPGained { get; }
     public string CombatLog { get; }
+    public string EnemyIntentText { get; }
 }
 
 public class CombatSystem
 {
-    public CombatResult RunCombat(Player player, Room room)
+    public string PreviewEnemyIntents(Player player, Room room)
+    {
+        PrepareEnemyIntents(room, player);
+        return BuildEnemyIntentSummary(room);
+    }
+
+    public CombatResult RunCombat(Player player, Room room, PlayerAction action)
     {
         var logBuilder = new StringBuilder();
-        int round = 1;
+        logBuilder.AppendLine("Round " + room.RoomNumber);
+        logBuilder.AppendLine("Action: " + action);
 
-        logBuilder.AppendLine("=== Room " + room.RoomNumber + " Combat Start ===");
-
-        while (player.IsAlive() && !room.AreAllEnemiesDefeated())
+        if (!player.IsAlive())
         {
-            logBuilder.AppendLine("-- Round " + round + " --");
-            logBuilder.AppendLine(BuildCombatState(player, room));
-
-            HandlePlayerTurn(player, room, logBuilder);
-            if (room.AreAllEnemiesDefeated())
-                break;
-
-            HandleEnemyTurn(player, room, logBuilder);
-            round++;
+            logBuilder.AppendLine("You are already defeated.");
+            return new CombatResult(true, false, 0, logBuilder.ToString().TrimEnd(), "-");
         }
 
-        bool playerWon = player.IsAlive();
+        if (room.AreAllEnemiesDefeated())
+        {
+            int xpAlready = room.Enemies.Sum(e => e.XPReward);
+            room.IsCleared = true;
+            logBuilder.AppendLine("Room already cleared.");
+            return new CombatResult(true, true, xpAlready, logBuilder.ToString().TrimEnd(), "-");
+        }
+
+        PrepareEnemyIntents(room, player);
+        logBuilder.AppendLine(BuildCombatState(player, room));
+
+        bool defendThisRound = HandlePlayerTurn(player, room, action, logBuilder);
+        if (!room.AreAllEnemiesDefeated())
+        {
+            HandleEnemyTurn(player, room, defendThisRound, logBuilder);
+        }
+
+        player.TickSkillCooldown();
+
+        bool roomCleared = room.AreAllEnemiesDefeated();
+        bool playerAlive = player.IsAlive();
+        bool isCombatFinished = roomCleared || !playerAlive;
+        bool playerWon = playerAlive && roomCleared;
         int xpGained = 0;
+        string nextEnemyIntentText = "-";
 
         if (playerWon)
         {
@@ -47,12 +79,17 @@ public class CombatSystem
             room.IsCleared = true;
             logBuilder.AppendLine("Room " + room.RoomNumber + " cleared, XP gained: " + xpGained + ".");
         }
-        else
+        else if (!playerAlive)
         {
             logBuilder.AppendLine("You were defeated.");
         }
+        else
+        {
+            nextEnemyIntentText = BuildEnemyIntentSummary(room);
+            logBuilder.AppendLine("Round ended. Choose your next action.");
+        }
 
-        return new CombatResult(playerWon, xpGained, logBuilder.ToString().TrimEnd());
+        return new CombatResult(isCombatFinished, playerWon, xpGained, logBuilder.ToString().TrimEnd(), nextEnemyIntentText);
     }
 
     private static string BuildCombatState(Player player, Room room)
@@ -71,29 +108,68 @@ public class CombatSystem
         return summary.ToString().TrimEnd();
     }
 
-    private static void HandlePlayerTurn(Player player, Room room, StringBuilder logBuilder)
+    private static bool HandlePlayerTurn(Player player, Room room, PlayerAction action, StringBuilder logBuilder)
     {
         var target = room.Enemies.FirstOrDefault(e => e.IsAlive());
         if (target == null)
-            return;
+            return false;
+
+        if (action == PlayerAction.Defend)
+        {
+            logBuilder.AppendLine("Player braces for impact. Incoming damage reduced this round.");
+            return true;
+        }
+
+        if (action == PlayerAction.Skill && player.CanUsePowerStrike())
+        {
+            int skillDamage = player.UsePowerStrike(target);
+            target.TakeDamage(skillDamage);
+            logBuilder.AppendLine("Player uses Power Strike on " + target.Name + ", dealing " + skillDamage + " damage.");
+            return false;
+        }
 
         int damage = player.CalculateDamage(target);
         target.TakeDamage(damage);
         logBuilder.AppendLine("Player attacks " + target.Name + ", dealing " + damage + " damage.");
+        return false;
     }
 
-    private static void HandleEnemyTurn(Player player, Room room, StringBuilder logBuilder)
+    private static void HandleEnemyTurn(Player player, Room room, bool playerDefending, StringBuilder logBuilder)
     {
         foreach (Enemy enemy in room.Enemies.Where(e => e.IsAlive()))
         {
-            int rawDamage = enemy.CalculateDamage(player);
-            int expectedDamage = Math.Max(1, rawDamage - player.Defense);
+            if (enemy.CurrentIntent == EnemyIntentType.Defend)
+            {
+                logBuilder.AppendLine(enemy.Name + " chooses to defend.");
+                continue;
+            }
 
-            logBuilder.AppendLine(enemy.Name + " counterattacks, dealing " + expectedDamage + " damage.");
-            player.TakeDamage(rawDamage);
+            int rawDamage = enemy.CalculateDamage(player);
+            int actualDamage = player.TakeDamageWithDefense(rawDamage, playerDefending);
+
+            logBuilder.AppendLine(enemy.Name + " counterattacks, dealing " + actualDamage + " damage.");
 
             if (!player.IsAlive())
                 break;
         }
+    }
+
+    private static void PrepareEnemyIntents(Room room, Player player)
+    {
+        foreach (Enemy enemy in room.Enemies.Where(e => e.IsAlive()))
+        {
+            enemy.DecideIntent(player);
+        }
+    }
+
+    private static string BuildEnemyIntentSummary(Room room)
+    {
+        var aliveEnemies = room.Enemies.Where(e => e.IsAlive()).ToList();
+        if (aliveEnemies.Count == 0)
+        {
+            return "-";
+        }
+
+        return string.Join(", ", aliveEnemies.Select(e => e.Name + ": " + e.GetIntentText()));
     }
 }
