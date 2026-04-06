@@ -1,17 +1,11 @@
 // Joueur - Singleton Pattern
 // Une seule instance du joueur existe dans le jeu
-public class Player : IEntity
+public class Player : Combatant
 {
     private static Player instance;
 
     private const int POWER_STRIKE_COOLDOWN_TURNS = 3;
     private const float POWER_STRIKE_MULTIPLIER = 1.8f;
-
-    // Statistiques
-    public int HP { get; set; }
-    public int MaxHP { get; set; }
-    public int Attack { get; set; }
-    public int Defense { get; set; }
 
     // Équipement (temporairement désactivé)
 
@@ -34,11 +28,8 @@ public class Player : IEntity
     private const int DEFENSE_PER_LEVEL = 1;
 
     private Player()
+        : base(BASE_HP, BASE_ATTACK, BASE_DEFENSE)
     {
-        HP = BASE_HP;
-        MaxHP = BASE_HP;
-        Attack = BASE_ATTACK;
-        Defense = BASE_DEFENSE;
         experienceSystem = new Experience();
         PowerStrikeCooldownRemaining = 0;
     }
@@ -63,28 +54,9 @@ public class Player : IEntity
     }
 
 
-    public void TakeDamage(int damage)
-    {
-        TakeDamageWithDefense(damage, false);
-    }
-
     public int TakeDamageWithDefense(int damage, bool isDefending)
     {
-        int reducedDamage = isDefending ? (int)System.Math.Ceiling(damage * 0.5f) : damage;
-        reducedDamage -= Defense;
-        if (reducedDamage < 1)
-            reducedDamage = 1;
-
-        HP -= reducedDamage;
-        if (HP < 0)
-            HP = 0;
-
-        return reducedDamage;
-    }
-
-    public int CalculateDamage(IEntity target)
-    {
-        return Attack;
+        return ApplyDamage(damage, isDefending);
     }
 
     public bool CanUsePowerStrike()
@@ -139,13 +111,6 @@ public class Player : IEntity
         Defense = BASE_DEFENSE + (levelDifference * DEFENSE_PER_LEVEL) + equipmentDefenseBonus;
 
         HP = MaxHP;
-    }
-
-    // Équipement temporairement désactivé
-
-    public bool IsAlive()
-    {
-        return HP > 0;
     }
 
 }

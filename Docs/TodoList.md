@@ -16,7 +16,7 @@
 
 ## 3. Core Combat Loop
 
-- [ ] Enter combat scene and initialize player plus current wave.
+- [x] Enter combat scene and initialize player plus current wave.
 - [x] Player turn: click one action button.
 - [x] Enemy turn: enemy acts automatically.
 - [x] End turn: apply damage, cooldown, and state updates.
@@ -43,13 +43,13 @@
 
 - [x] Implement at least 2 enemy types (melee plus ranged/simple caster).
 - [x] Define enemy intent each turn (attack, defend).
-- [ ] Spawn enemies by waves (recommended 3 waves).
-- [ ] Increase enemy stats per wave with simple scaling.
+- [x] Spawn enemies by waves (recommended 3 waves).
+- [x] Increase enemy stats per wave with simple scaling.
 - [x] Show wave index in UI (for example, Wave 2/3).
 
 ## 7. Win/Lose and Flow
 
-- [ ] Win wave when all enemies are defeated.
+- [x] Win wave when all enemies are defeated.
 - [ ] Start next wave automatically after short delay.
 - [x] Win run when final wave is cleared.
 - [x] Lose run when player HP is zero or below.
@@ -57,7 +57,7 @@
 
 ## 8. Data and Architecture
 
-- [ ] Keep battle flow in a state machine (player turn, enemy turn, result).
+- [x] Keep battle flow in a state machine (player turn, enemy turn, result).
 - [x] Keep stat changes event-driven for UI updates.
 - [ ] Store combat values in config or ScriptableObject data.
 - [x] Separate UI binding code from combat logic.
@@ -65,7 +65,7 @@
 ## 9. Feedback and Readability
 
 - [x] Show clear damage numbers or concise combat logs.
-- [ ] Show skill cooldown state on button text or icon.
+- [x] Show skill cooldown state on button text or icon.
 - [x] Highlight enemy intent every turn.
 - [x] Ensure every action has immediate visible feedback.
 
@@ -80,6 +80,6 @@
 
 - [x] Step 1: Build turn state machine.
 - [x] Step 2: Implement three buttons and callbacks (Attack, Skill, Defend).
-- [ ] Step 3: Add enemy intent and wave spawner.
+- [x] Step 3: Add enemy intent and wave spawner.
 - [x] Step 4: Add result panel and restart flow.
 - [ ] Step 5: Tune numbers and polish feedback.

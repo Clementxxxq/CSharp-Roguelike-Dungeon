@@ -4,8 +4,14 @@ using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
+    public enum GameOverOutcome
+    {
+        None,
+        Lose,
+        Win
+    }
+
     public static GameManager Instance { get; private set; } //Singleton
-    private Player player;
     private readonly CombatSystem combatSystem = new CombatSystem();
     private readonly RoomManager roomManager = new RoomManager();
 
@@ -16,41 +22,24 @@ public class GameManager : MonoBehaviour
 
     public bool IsGameStarted { get; private set; }
     public bool IsGameOver { get; private set; }
+    public GameOverOutcome LastGameOverOutcome { get; private set; } = GameOverOutcome.None;
     public int CurrentRoom => roomManager.CurrentRoom;
     public int LastRoomEnemyCount { get; private set; }
     public int LastRoomTotalEnemies { get; private set; }
+    public int LastRoomCurrentWave { get; private set; }
+    public int LastRoomMaxWaves { get; private set; }
     public string LastRoomType { get; private set; } = "Not started";
     public string LastEnemyIntentText { get; private set; } = "-";
     public string LastEnemyInfoText { get; private set; } = "-";
+    public CombatSystem CombatSystem => combatSystem;
     public string LastRoomWaveProgress
     {
         get
         {
-            int total = Math.Max(1, LastRoomTotalEnemies);
-            int current = GetCurrentWaveIndex();
+            int total = Math.Max(1, LastRoomMaxWaves);
+            int current = Math.Max(1, LastRoomCurrentWave);
             return current + "/" + total;
         }
-    }
-
-    public int PlayerHP => player?.HP ?? 0;
-    public int PlayerMaxHP => player?.MaxHP ?? 0;
-    public int PlayerAttack => player?.Attack ?? 0;
-    public int PlayerDefense => player?.Defense ?? 0;
-    public int PlayerLevel => player?.CurrentLevel ?? 1;
-    public int PlayerXP => player?.CurrentXP ?? 0;
-    public int PlayerXPToNextLevel => player?.XPToNextLevel ?? 1;
-    public int PlayerSkillCooldown => player?.PowerStrikeCooldownRemaining ?? 0;
-
-    private int GetCurrentWaveIndex()
-    {
-        if (LastRoomTotalEnemies <= 0)
-            return 1;
-
-        if (LastRoomEnemyCount <= 0)
-            return LastRoomTotalEnemies;
-
-        int defeatedCount = LastRoomTotalEnemies - LastRoomEnemyCount;
-        return Math.Min(LastRoomTotalEnemies, Math.Max(1, defeatedCount + 1));
     }
 
     private void Awake()
@@ -79,7 +68,7 @@ public class GameManager : MonoBehaviour
 
     public void RaiseHPChanged()
     {
-        OnHPChanged?.Invoke(PlayerHP, PlayerMaxHP);
+        OnHPChanged?.Invoke(CombatSystem.PlayerHP, CombatSystem.PlayerMaxHP);
     }
 
     public void RaiseRoomChanged()
@@ -94,14 +83,16 @@ public class GameManager : MonoBehaviour
             return "Game has already started.";
         }
 
-        Player.ResetInstance();
-        player = Player.GetInstance();
+        combatSystem.StartNewGame();
 
         IsGameStarted = true;
         IsGameOver = false;
+        LastGameOverOutcome = GameOverOutcome.None;
         roomManager.ResetProgress();
         LastRoomEnemyCount = 0;
         LastRoomTotalEnemies = 0;
+        LastRoomCurrentWave = 0;
+        LastRoomMaxWaves = 0;
         LastRoomType = "Normal Room";
         LastEnemyIntentText = "-";
         LastEnemyInfoText = "-";
@@ -125,7 +116,7 @@ public class GameManager : MonoBehaviour
 
     public string EnterRoom()
     {
-        if (player == null)
+        if (!combatSystem.HasPlayer)
         {
             return "Combat state error, please click Restart.";
         }
@@ -133,8 +124,10 @@ public class GameManager : MonoBehaviour
         Room room = roomManager.CreateCurrentRoom();
         LastRoomTotalEnemies = room.Enemies.Count;
         LastRoomEnemyCount = room.Enemies.Count(e => e.IsAlive());
+        LastRoomCurrentWave = room.CurrentWave;
+        LastRoomMaxWaves = room.MaxWaves;
         LastRoomType = roomManager.GetCurrentRoomTypeLabel();
-        LastEnemyIntentText = combatSystem.PreviewEnemyIntents(player, room);
+        LastEnemyIntentText = combatSystem.PreviewEnemyIntents(room);
         LastEnemyInfoText = BuildEnemyInfoSummary(room);
 
         RaiseRoomChanged();
@@ -204,20 +197,39 @@ public class GameManager : MonoBehaviour
 
     internal string EnterCurrentRoomInternal(PlayerAction action)
     {
-        if (player == null)
+        if (!combatSystem.HasPlayer)
         {
             return "Combat state error, please click Restart.";
         }
 
         Room room = roomManager.CreateCurrentRoom();
 
-        CombatResult result = combatSystem.RunCombat(player, room, action);
+        CombatResult result = combatSystem.RunCombat(room, action);
         LastRoomEnemyCount = room.Enemies.Count(e => e.IsAlive());
+        LastRoomTotalEnemies = room.Enemies.Count;
+        LastRoomCurrentWave = room.CurrentWave;
+        LastRoomMaxWaves = room.MaxWaves;
         LastEnemyIntentText = result.EnemyIntentText;
         LastEnemyInfoText = BuildEnemyInfoSummary(room);
         string log = "Room " + CurrentRoom + " (" + LastRoomType + ").\n" + result.CombatLog;
         RaiseHPChanged();
         RaiseRoomChanged();
+
+        if (result.WaveCleared && room is CombatRoom combatRoom && combatRoom.HasNextWave)
+        {
+            if (combatRoom.AdvanceWave())
+            {
+                LastRoomEnemyCount = room.Enemies.Count(e => e.IsAlive());
+                LastRoomTotalEnemies = room.Enemies.Count;
+                LastRoomCurrentWave = room.CurrentWave;
+                LastRoomMaxWaves = room.MaxWaves;
+                LastEnemyIntentText = combatSystem.PreviewEnemyIntents(room);
+                LastEnemyInfoText = BuildEnemyInfoSummary(room);
+                RaiseRoomChanged();
+                log += "\nWave " + room.CurrentWave + " cleared. Next wave begins.";
+                return log;
+            }
+        }
 
         if (!result.IsCombatFinished)
         {
@@ -227,17 +239,16 @@ public class GameManager : MonoBehaviour
         if (!result.PlayerWon)
         {
             IsGameOver = true;
+            LastGameOverOutcome = GameOverOutcome.Lose;
             ChangeState(new GameOverState());
             log += "\nYou died! Click Restart to start over.";
             return log;
         }
 
-        player.GainExperience(result.XPGained);
-        RaiseHPChanged();
-
         if (roomManager.IsFinalRoom())
         {
             IsGameOver = true;
+            LastGameOverOutcome = GameOverOutcome.Win;
             ChangeState(new GameOverState());
             log += "\nYou defeated the boss and cleared the game!";
             return log;
@@ -246,6 +257,8 @@ public class GameManager : MonoBehaviour
         roomManager.MoveToNextRoom();
         LastRoomEnemyCount = 0;
         LastRoomTotalEnemies = 0;
+        LastRoomCurrentWave = 0;
+        LastRoomMaxWaves = 0;
         LastEnemyIntentText = "-";
         LastEnemyInfoText = "-";
         RaiseRoomChanged();
