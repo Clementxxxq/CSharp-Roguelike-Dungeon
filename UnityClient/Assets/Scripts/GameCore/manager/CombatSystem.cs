@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 
@@ -32,6 +33,7 @@ public sealed class CombatResult
 public class CombatSystem
 {
     private Player player;
+    private readonly HashSet<Enemy> xpAwardedEnemies = new HashSet<Enemy>();
 
     public bool HasPlayer => player != null;
     public int PlayerHP => player?.HP ?? 0;
@@ -47,6 +49,7 @@ public class CombatSystem
     {
         Player.ResetInstance();
         player = Player.GetInstance();
+        xpAwardedEnemies.Clear();
     }
 
     public string PreviewEnemyIntents(Room room)
@@ -79,16 +82,16 @@ public class CombatSystem
 
         if (room.AreAllEnemiesDefeated())
         {
-            int xpAlready = room.Enemies.Sum(e => e.XPReward);
             room.IsCleared = true;
             logBuilder.AppendLine("Room already cleared.");
-            return new CombatResult(true, true, xpAlready, logBuilder.ToString().TrimEnd(), "-", false);
+            return new CombatResult(true, true, 0, logBuilder.ToString().TrimEnd(), "-", false);
         }
 
         PrepareEnemyIntents(room, player);
         logBuilder.AppendLine(BuildCombatState(player, room));
 
         bool defendThisRound = HandlePlayerTurn(player, room, action, logBuilder);
+        int xpGained = AwardXPForNewlyDefeatedEnemies(room, logBuilder);
         if (!room.AreAllEnemiesDefeated())
         {
             HandleEnemyTurn(player, room, defendThisRound, logBuilder);
@@ -101,7 +104,6 @@ public class CombatSystem
         bool isCombatFinished = roomCleared || !playerAlive;
         bool playerWon = playerAlive && roomCleared;
         bool waveCleared = false;
-        int xpGained = 0;
         string nextEnemyIntentText = "-";
 
         if (playerWon)
@@ -116,10 +118,8 @@ public class CombatSystem
             }
             else
             {
-                xpGained = room.Enemies.Sum(e => e.XPReward);
-                player.GainExperience(xpGained);
                 room.IsCleared = true;
-                logBuilder.AppendLine("Room " + room.RoomNumber + " cleared, XP gained: " + xpGained + ".");
+                logBuilder.AppendLine("Room " + room.RoomNumber + " cleared.");
             }
         }
         else if (!playerAlive)
@@ -133,6 +133,21 @@ public class CombatSystem
         }
 
         return new CombatResult(isCombatFinished, playerWon, xpGained, logBuilder.ToString().TrimEnd(), nextEnemyIntentText, waveCleared);
+    }
+
+    private int AwardXPForNewlyDefeatedEnemies(Room room, StringBuilder logBuilder)
+    {
+        int gained = 0;
+
+        foreach (Enemy enemy in room.Enemies.Where(e => !e.IsAlive() && !xpAwardedEnemies.Contains(e)))
+        {
+            xpAwardedEnemies.Add(enemy);
+            gained += enemy.XPReward;
+            player.GainExperience(enemy.XPReward);
+            logBuilder.AppendLine(enemy.Name + " defeated. XP gained: " + enemy.XPReward + ".");
+        }
+
+        return gained;
     }
 
     private static string BuildCombatState(Player player, Room room)

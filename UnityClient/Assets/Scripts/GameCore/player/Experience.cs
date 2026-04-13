@@ -7,7 +7,7 @@ public class Experience
 
     public int XPForNextLevel()
     {
-        return 80 + (currentLevel - 1) * 35;
+        return 50 + (currentLevel - 1) * 20;
     }
     public int CurrentXP => currentXP;
     public int CurrentLevel => currentLevel;
